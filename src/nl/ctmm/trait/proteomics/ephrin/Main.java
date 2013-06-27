@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import nl.ctmm.trait.proteomics.ephrin.gui.SummaryTable;
 import nl.ctmm.trait.proteomics.ephrin.gui.ViewerFrame;
 import nl.ctmm.trait.proteomics.ephrin.input.TemplateFileReader;
+import nl.ctmm.trait.proteomics.ephrin.input.TxtDirectoryReader;
 import nl.ctmm.trait.proteomics.ephrin.output.SummaryFileWriter;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 
@@ -17,6 +18,7 @@ public class Main {
     private ViewerFrame viewerFrame;
     private TemplateFileReader templateFileReader; 
     private SummaryFileWriter summaryFileWriter; 
+
     private static Main instance = new Main();
     
     /**
@@ -45,7 +47,6 @@ public class Main {
         SummaryTable newContentPane = new SummaryTable();
         newContentPane.setOpaque(true); //content panes must be opaque
         viewerFrame.setContentPane(newContentPane);
- 
         //Display the window.
         viewerFrame.pack();
         viewerFrame.setVisible(true);
@@ -91,5 +92,6 @@ public class Main {
 
 	public void notifyNewTxtDirectorySelected(String txtDirectory) {
 		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectory);
+	    TxtDirectoryReader txtDirectoryReader = new TxtDirectoryReader(txtDirectory); 
 	}
 }
