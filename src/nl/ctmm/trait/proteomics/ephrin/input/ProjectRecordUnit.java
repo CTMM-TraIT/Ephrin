@@ -12,4 +12,15 @@ public class ProjectRecordUnit {
 		this.folderPath = folderPath; 
 	}
 	
+	public String getProjectName() {
+		return projectName;
+	}
+	
+	public String getFirstRawFile() {
+		return firstRawFile;
+	}
+	
+	public String getFolderPath() {
+		return folderPath;
+	}
 }

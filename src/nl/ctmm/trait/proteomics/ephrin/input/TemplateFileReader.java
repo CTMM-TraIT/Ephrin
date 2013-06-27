@@ -1,7 +1,43 @@
 package nl.ctmm.trait.proteomics.ephrin.input;
 
-public class TemplateFileReader {
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 
+public class TemplateFileReader {
+	
+	String templateFilePath = "";
+	
+	public TemplateFileReader(String templateFilePath) {
+		this.templateFilePath = templateFilePath;
+	}
+	
+	public String readSecondLine() {
+		 File templateFile = new File(templateFilePath);
+	     String secondLine = "";
+	     try {
+	        InputStreamReader streamReader = new InputStreamReader(new FileInputStream(templateFile));
+	        BufferedReader br = new BufferedReader(streamReader);
+	        //Also check for empty lines and white spaces
+	        int lineNo = 0; 
+	        while (br.ready()) {
+	        	String thisLine = br.readLine();
+	            thisLine = thisLine.trim();
+	            if (thisLine.length() > 0) {
+	            	++lineNo; //1st line, second line etc.
+	                if (lineNo == 2) {
+	                  	secondLine = thisLine.replace("\t", "|");
+	                   	break;
+	                } 
+	            }
+	        }
+	    } catch (Exception e) {
+	        System.out.println(e.toString());
+	    }
+	    System.out.println("Second line = " + secondLine);
+	    return secondLine;
+	}
 
 }
 
