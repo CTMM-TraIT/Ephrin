@@ -11,6 +11,6 @@ public interface Constants {
     static final String APPLICATION_VERSION = "0.0.1";
     static final String PROPERTIES_FILE_NAME = "appProperties";
     static final String PROPERTY_TEMPLATE_FILE_NAME = "experimentalDesignTemplate.txt";
-    static final String PROPERTY_SUMMARY_FILE_FULLPATH = "TrackerSummaryFile.tsv";
+    static final String PROPERTY_SUMMARY_FILE_FULLPATH = "EphrinSummaryFile.tsv";
     static final String PROPERTY_PROJECT_LOGO_FILE = "images\\PDB_2hle_EBI.jpg";
 }
