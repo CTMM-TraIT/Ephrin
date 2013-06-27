@@ -27,6 +27,8 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import nl.ctmm.trait.proteomics.ephrin.Main;
+
 /**
  * ViewerFrame with the GUI for the QC Report Viewer V2.
  *
@@ -37,16 +39,17 @@ import javax.swing.event.ChangeListener;
 public class ViewerFrame extends JFrame implements ActionListener, ItemListener, ChangeListener, MouseListener {
     private static final long serialVersionUID = 1L;
     private JDesktopPane tablePane = new ScrollDesktop();
-
+    private Main owner = null; 
     /**
      * Creates a new instance of the demo.
      * 
      * @param title  the title.
      * @param pipelineStatus 
      */
-    public ViewerFrame(final Properties appProperties, final String title) {
+    public ViewerFrame(final Properties appProperties, final String title, final Main owner) {
         super(title);
         System.out.println("ViewerFrame constructor");
+        this.owner = owner; 
         setPreferredSize(new Dimension(800, 600));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         assembleComponents();
@@ -60,8 +63,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private void assembleComponents() { 
         System.out.println("ViewerFrame assembleComponents");
         //We need two split panes to create 3 regions in the main frame
-
-            setJMenuBar(createMenuBar());
+        setJMenuBar(createMenuBar());
     }
     
     /**
@@ -91,8 +93,11 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
                 + " evt class = " + evt.getClass());
         //Check whether Details button is pressed - in order to open corresponding hyperlink 
 
-        if (evt.getActionCommand().startsWith("")) {
-
+        if (evt.getActionCommand().equals("SearchDirectory")) {
+        	String txtDirectory = displayTxtDirectoryChooser();
+        	if (txtDirectory != null && owner != null) {
+        		owner.notifyNewTxtDirectorySelected(txtDirectory);
+        	}
         }
     }
     
@@ -123,18 +128,19 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     }
     
 	
-	 public void displayRootDirectoryChooser () {
+	 public String displayTxtDirectoryChooser () {
 	 JFileChooser chooser = new JFileChooser();
-	 	chooser.setName("Select Report Folder");
+	 	chooser.setName("Select txt Folder");
 		chooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY);
 	    int returnVal = chooser.showOpenDialog(null);
-	    String preferredRootDirectory = null;
+	    String txtDirectory = null;
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
-	    	preferredRootDirectory = chooser.getSelectedFile().getAbsolutePath();
-	       System.out.println("You chose to open this folder: " +
+	    	txtDirectory = chooser.getSelectedFile().getAbsolutePath();
+	       System.out.println("Selected folder: " +
 	            chooser.getSelectedFile().getAbsolutePath());
 		    dispose();
 	    } 
+	    return txtDirectory;
 	 }
 
 

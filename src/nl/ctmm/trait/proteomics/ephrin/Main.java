@@ -38,7 +38,7 @@ public class Main {
      */
     private void createAndShowGUI(Properties appProperties) {
         //Create and set up the window.
-        viewerFrame = new ViewerFrame(appProperties, "Ephrin - Proteomics Project Tracker");
+        viewerFrame = new ViewerFrame(appProperties, "Ephrin - Proteomics Project Tracker", instance);
         viewerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Create and set up the content pane.
@@ -88,4 +88,8 @@ public class Main {
         });
         */
     }
+
+	public void notifyNewTxtDirectorySelected(String txtDirectory) {
+		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectory);
+	}
 }
