@@ -30,7 +30,7 @@ public class TxtDirectoryReader {
             }
             System.out.println("Record: " + projectName + " " + secondLine + " " 
                     + projectFolder);
-            ProjectRecordUnit projectrecordUnit = new ProjectRecordUnit(projectName, secondLine, projectFolder);
+            ProjectRecordUnit projectrecordUnit = new ProjectRecordUnit(0, projectName, secondLine, projectFolder);
             SummaryFileWriter.getInstance().addProjectRecordUnit(projectrecordUnit); 
         }
     }
