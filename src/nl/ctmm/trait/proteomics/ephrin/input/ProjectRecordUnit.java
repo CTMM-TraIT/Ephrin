@@ -14,6 +14,11 @@ public class ProjectRecordUnit {
 		this.folderPath = folderPath; 
 	}
 	
+	//for new project record units, it is necessary to update record num for display
+	public void setRecordNum(int recordNum) {
+		this.recordNum = recordNum; 
+	}
+	
 	public int getRecordNum() {
 		return recordNum;
 	}

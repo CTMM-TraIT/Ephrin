@@ -24,13 +24,10 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -59,6 +56,7 @@ import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
 
+
 /**
  * ViewerFrame with the GUI for the QC Report Viewer V2.
  *
@@ -78,11 +76,13 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private int yCoordinate = 0;
     private List<Boolean> recordCheckBoxFlags = new ArrayList<Boolean>();
     private String currentSortCriteria; 
-    private List<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>(); //preserve original record units 
-    private List<ProjectRecordUnit> orderedRecordUnits = new ArrayList<ProjectRecordUnit>(); //use this list for display and other operations
+    private ArrayList<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>(); //preserve original record units 
+    private ArrayList<ProjectRecordUnit> orderedRecordUnits = new ArrayList<ProjectRecordUnit>(); //use this list for display and other operations
     private JSplitPane splitPane1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT); 
     private static final List<Color> LABEL_COLORS = Arrays.asList(
             Color.BLUE, Color.DARK_GRAY, Color.GRAY, Color.MAGENTA, Color.ORANGE, Color.RED, Color.BLACK);
+    private JPanel statusPanel;
+    private String currentStatus = ""; 
     
     /**
      * Creates a new instance of the demo.
@@ -90,14 +90,15 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      * @param title  the title.
      * @param pipelineStatus 
      */
-    public ViewerFrame(final Properties appProperties, final String title, final Main owner, final ArrayList<String> sortOptions, final List<ProjectRecordUnit> recordUnits) {
+    public ViewerFrame(final Properties appProperties, final String title, final Main owner, final ArrayList<String> sortOptions, final ArrayList<ProjectRecordUnit> recordUnits) {
         super(title);
         System.out.println("ViewerFrame constructor");
         this.owner = owner; 
         this.sortOptions = sortOptions;
         this.recordUnits = recordUnits; 
-        this.orderedRecordUnits = recordUnits; //TODO Algorithm for ordering record units
+        //TODO Algorithm for ordering record units
         for (int i = 0; i < recordUnits.size(); ++i) {
+        	orderedRecordUnits.add(recordUnits.get(i));
         	recordCheckBoxFlags.add(false); //initialize MarkCheckBox flag to false
         }
         for (int i = 0; i < sortOptions.size(); ++i) {
@@ -150,6 +151,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         JMenuItem saveRecordsAction = new JMenuItem("Save All Records...");
         settingsMenu.add(saveRecordsAction);
         saveRecordsAction.setActionCommand("SaveAllRecords");
+        saveRecordsAction.addActionListener(this); 
         //Delete marked records
         JMenuItem deleteRecordsAction = new JMenuItem("Delete Marked Records...");
         settingsMenu.add(deleteRecordsAction);
@@ -278,11 +280,11 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         controlPanel.add(traitctmmPanel, 2);
         
         controlFrame.getContentPane().add(controlPanel, BorderLayout.NORTH);
-        String status = "Number of project record units = " + orderedRecordUnits.size(); 
-        JLabel statusLabel = new JLabel(status);
+        currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
+        JLabel statusLabel = new JLabel(currentStatus);
         statusLabel.setFont(font);
         statusLabel.setBackground(Color.CYAN);
-        JPanel statusPanel = new JPanel();
+        statusPanel = new JPanel();
         statusPanel.setBackground(Color.CYAN); 
         statusPanel.add(statusLabel);
         controlFrame.getContentPane().add(statusPanel, BorderLayout.SOUTH);
@@ -403,7 +405,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             if (flag) {
             	recordFrame = createRecordFrame(i, orderedRecordUnits.get(i));
             } else {
-                int index = orderedRecordUnits.size() - i - 1;
                 recordFrame = createRecordFrame(i, orderedRecordUnits.get(orderedRecordUnits.size() - i - 1));
             }
             recordFrame.setBorder(BorderFactory.createRaisedBevelBorder());
@@ -416,6 +417,68 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         }
     }
     
+    public void updateRecordUnits(List<ProjectRecordUnit> newRecordUnits) {
+        System.out.println("In updateRecordUnits yCoordinate = " + yCoordinate);
+        int numRecordUnits = orderedRecordUnits.size();
+        System.out.println("Number of project record units = " + orderedRecordUnits.size());
+        if (newRecordUnits.size() > 0) {
+            for (int i = 0; i < newRecordUnits.size(); ++i) {
+            	ProjectRecordUnit thisUnit = newRecordUnits.get(i);
+             	thisUnit.setRecordNum(++numRecordUnits);
+                recordUnits.add(thisUnit);
+                orderedRecordUnits.add(thisUnit);
+                System.out.println("Number of project record units = " + orderedRecordUnits.size());
+                recordCheckBoxFlags.add(false);
+                //update desktopFrame
+                JInternalFrame recordFrame = createRecordFrame(thisUnit.getRecordNum(), thisUnit);
+                recordFrame.setBorder(BorderFactory.createRaisedBevelBorder());
+                recordFrame.pack();
+                recordFrame.setLocation(0, yCoordinate);
+                desktopPane.add(recordFrame);
+                recordFrame.setVisible(true);
+                System.out.println("yCoordinate = " + yCoordinate);
+                yCoordinate +=  RECORD_HEIGHT + 15;
+                System.out.println("Number of project record units = " + orderedRecordUnits.size());
+           }
+           desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, numRecordUnits * (RECORD_HEIGHT + 15)));
+           }
+        updateEphrinStatus();
+        pack();
+        setVisible(true);
+        revalidate();
+    }
+    
+    public void updateEphrinStatus() {
+        statusPanel.removeAll();
+        int style = Font.BOLD;
+        Font font = new Font ("Garamond", style , 11);
+        currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
+        JLabel statusLabel = new JLabel (currentStatus);
+        statusLabel.setFont(font);
+        statusLabel.setBackground(Color.CYAN);
+        statusPanel.setBackground(Color.CYAN);
+        statusPanel.add(statusLabel);
+        pack();
+        setVisible(true);
+        revalidate();
+    }  
+    
+    public void appendEphrinStatus(String appendMessage) {
+    	System.out.println("ViewerFrame::appendEphrinStatus " + appendMessage);
+        statusPanel.removeAll();
+        int style = Font.BOLD;
+        Font font = new Font ("Garamond", style , 11);
+        currentStatus += "| | | | " + appendMessage; 
+        JLabel statusLabel = new JLabel (currentStatus);
+        statusLabel.setFont(font);
+        statusLabel.setBackground(Color.CYAN);
+        statusPanel.setBackground(Color.CYAN);
+        statusPanel.add(statusLabel);
+        pack();
+        setVisible(true);
+        revalidate();
+    }  
+        
     /**
      * Process user input events.
      */
@@ -430,6 +493,8 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         	if (txtDirectory != null && owner != null) {
         		owner.notifyNewTxtDirectorySelected(txtDirectory);
         	}
+        } else if (evt.getActionCommand().equals("SaveAllRecords")) {
+        	owner.notifyOverwriteProjectRecords(recordUnits);
         }
     }
     

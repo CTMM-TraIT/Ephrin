@@ -15,6 +15,7 @@ public interface Constants {
     static final String PROPERTIES_FILE_NAME = "appProperties";
     static final String PROPERTY_TEMPLATE_FILE_NAME = "experimentalDesignTemplate.txt";
     static final String PROPERTY_SUMMARY_FILE_FULLPATH = "EphrinSummaryFile.tsv";
+    static final String PROPERTY_BACKUP_FILE_FULLPATH = "EphrinSummaryFile.tsv.bak";
     static final String PROPERTY_EPHRIN_LOGO_FILE = "images\\PDB_2hle_EBI.jpg";
     static final String PROPERTY_PROJECT_LOGO_FILE = "images\\traitctmm.jpg";
 	ArrayList<String> SORT_OPTION_NAMES = new ArrayList<String>(

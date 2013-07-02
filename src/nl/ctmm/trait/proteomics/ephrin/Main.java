@@ -111,10 +111,21 @@ public class Main {
     	         "C:\\qc-data\\QCArchive27Feb\\archive"));*/
     }
     
+    public void notifyOverwriteProjectRecords(ArrayList<ProjectRecordUnit> projectRecordUnits) {
+    	System.out.println("Main::notifyOverwriteProjectRecords " + projectRecordUnits.size() + " records");
+    	summaryFileWriter = SummaryFileWriter.getInstance();
+    	if (summaryFileWriter.OverwriteProjectRecords(projectRecordUnits)) {
+    		viewerFrame.appendEphrinStatus(projectRecordUnits.size() + " records successfully saved to " + Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
+    	} else {
+    		viewerFrame.appendEphrinStatus("Alert!! Something went wrong while saving project records!!");
+    	}
+    }
+    
 	public void notifyNewTxtDirectorySelected(String txtDirectoryName) {
 		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectoryName);
 	    TxtDirectoryReader txtDirectoryReader = TxtDirectoryReader.getInstance(); 
 	    ArrayList<ProjectRecordUnit> prUnits = txtDirectoryReader.RetrieveProjectRecords(txtDirectoryName);
 	    System.out.println(prUnits.size() + " new records found in " + txtDirectoryName);
+	    viewerFrame.updateRecordUnits(prUnits);
 	}
 }
