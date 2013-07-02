@@ -5,14 +5,27 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 
+/**
+ * Read the experiment design template file experimentalDesignTemplate.txt
+ * @author opl
+ *
+ */
 public class TemplateFileReader {
 	
 	String templateFilePath = "";
 	
+	/**
+	 * Constructor 
+	 * @param templateFilePath Path to experimentalDesignTemplate.txt
+	 */
 	public TemplateFileReader(String templateFilePath) {
 		this.templateFilePath = templateFilePath;
 	}
 	
+	/**
+	 * Read second line of the experimentalDesignTemplate.txt
+	 * @return Second line of the experimentalDesignTemplate.txt
+	 */
 	public String readSecondLine() {
 		 File templateFile = new File(templateFilePath);
 	     String secondLine = "";
@@ -38,7 +51,6 @@ public class TemplateFileReader {
 	    System.out.println("Second line = " + secondLine);
 	    return secondLine;
 	}
-
 }
 
 /**

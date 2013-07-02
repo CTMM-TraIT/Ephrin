@@ -37,9 +37,8 @@ public class Main {
     }
     
     /**
-     * Create the GUI and show it.  For thread safety,
-     * this method should be invoked from the
-     * event-dispatching thread.
+     * Create and show ViewerFrame GUI
+     * @param appProperties
      */
     private void createAndShowGUI(Properties appProperties) {
         //Create and set up the window.
@@ -92,7 +91,10 @@ public class Main {
         });
         */
     }
-
+    /**
+     * Retrieve project record units from the EphrinSummaryFile.tsv
+     * @return ArrayList of project record units
+     */
     private ArrayList<ProjectRecordUnit> retrieveRecordUnits() {
     	ArrayList<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>();
     	summaryFileReader = SummaryFileReader.getInstance();
@@ -111,6 +113,12 @@ public class Main {
     	         "C:\\qc-data\\QCArchive27Feb\\archive"));*/
     }
     
+    /**
+     * Overwrite displayed project records in the ViewerFrame. 
+     * The reason behind overwriting is changes to the EphrinSummaryFile.tsv file.  
+     *
+     * @param projectRecordUnits
+     */
     public void notifyOverwriteProjectRecords(ArrayList<ProjectRecordUnit> projectRecordUnits) {
     	System.out.println("Main::notifyOverwriteProjectRecords " + projectRecordUnits.size() + " records");
     	summaryFileWriter = SummaryFileWriter.getInstance();
@@ -121,11 +129,24 @@ public class Main {
     	}
     }
     
+    /**
+     * A new txt directory is chosen by the end-user. Read project records and update ViewerFrame
+     * @param txtDirectoryName
+     */
 	public void notifyNewTxtDirectorySelected(String txtDirectoryName) {
 		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectoryName);
 	    TxtDirectoryReader txtDirectoryReader = TxtDirectoryReader.getInstance(); 
 	    ArrayList<ProjectRecordUnit> prUnits = txtDirectoryReader.RetrieveProjectRecords(txtDirectoryName);
 	    System.out.println(prUnits.size() + " new records found in " + txtDirectoryName);
 	    viewerFrame.updateRecordUnits(prUnits);
+	}
+
+	/**
+	 * Trigger from ViewerFrame to refresh displayed project records. 
+	 * The reason behind refreshing is changes to the EphrinSummaryFile.tsv file.  
+	 */
+	public void notifyRefreshViewerFrame() {
+		System.out.println("Main::notifyRefreshViewerFrame");
+		viewerFrame.overwriteRecordUnits(retrieveRecordUnits());
 	}
 }

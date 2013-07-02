@@ -9,11 +9,20 @@ import java.util.StringTokenizer;
 
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 
+/**
+ * Reads the EphrinSummaryFile.tsv
+ * @author opl
+ *
+ */
 public class SummaryFileReader {
 	private static SummaryFileReader instance = new SummaryFileReader();
     final File summaryFile = new File(Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
 	ArrayList<ProjectRecordUnit> projectRecordUnits = new ArrayList<ProjectRecordUnit>();
     
+	/**
+	 * Get instance of SummaryFileReader
+	 * @return instance of SummaryFileReader
+	 */
     public static SummaryFileReader getInstance() {
     	if (instance == null) {
     		instance = new SummaryFileReader();
@@ -21,6 +30,10 @@ public class SummaryFileReader {
       return instance;
     }
     
+    /**
+     * Retrieve project records from the EphrinSummaryFile.tsv
+     * @return ArrayList containing project record units
+     */
     public ArrayList<ProjectRecordUnit> retrieveProjectRecords() {
     	if (projectRecordUnits != null) {
     		projectRecordUnits.clear();

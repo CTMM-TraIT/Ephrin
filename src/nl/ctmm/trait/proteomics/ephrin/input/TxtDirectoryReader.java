@@ -5,22 +5,32 @@ import java.util.ArrayList;
 
 import nl.ctmm.trait.proteomics.ephrin.output.SummaryFileWriter;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
-
+/**
+ * Parse the txt directory to create project record unit 
+ * @author opl
+ *
+ */
 public class TxtDirectoryReader {
     
 	private static TxtDirectoryReader instance = new TxtDirectoryReader(); 
 	ArrayList<ProjectRecordUnit> projectRecordUnits = new ArrayList<ProjectRecordUnit>();
-	
-	public TxtDirectoryReader() {
-		
-	}
 
+	/**
+	 * Get instance of TxtDirectoryReader
+	 * @return instance of TxtDirectoryReader
+	 */
 	public static TxtDirectoryReader getInstance() {
     	if (instance == null) {
     		instance = new TxtDirectoryReader();
     	}
       return instance;
     }
+	
+	/**
+	 * Retrieve project record from the txt directory
+	 * @param txtDirectoryName
+	 * @return ArrayList containing project record unit
+	 */
 	
     public ArrayList<ProjectRecordUnit> RetrieveProjectRecords (String txtDirectoryName) {
     	if (projectRecordUnits != null) {

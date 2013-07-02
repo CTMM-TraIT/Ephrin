@@ -24,7 +24,11 @@ public class Utilities {
     public static final String NOT_AVAILABLE_ICON_FILE = "images\\na.jpg";
 
     private static BufferedImage notAvailableImage;
-
+    
+    /**
+     * Get N/A icon
+     * @return BufferedImage of N/A icon
+     */
     public static BufferedImage getNotAvailableImage() {
         if (notAvailableImage == null) {
             try {
@@ -36,6 +40,14 @@ public class Utilities {
         return notAvailableImage;
     }
 
+    /**
+     * Create scaled image out of given image
+     * @param image Given image file
+     * @param scaleType FIT or FILL
+     * @param width Desired width of scaled image
+     * @param height Desired height of scaled image
+     * @return scaled image 
+     */
     public static BufferedImage scaleImage(final BufferedImage image, final int scaleType, final int width,
                                            final int height) {
         final BufferedImage scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);

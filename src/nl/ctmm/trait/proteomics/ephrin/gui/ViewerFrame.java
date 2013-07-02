@@ -58,7 +58,7 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
 
 
 /**
- * ViewerFrame with the GUI for the QC Report Viewer V2.
+ * ViewerFrame with the GUI for the Ephrin project
  *
  * @author <a href="mailto:pravin.pawar@nbic.nl">Pravin Pawar</a>
  * @author <a href="mailto:freek.de.bruijn@nbic.nl">Freek de Bruijn</a>
@@ -85,21 +85,24 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private String currentStatus = ""; 
     
     /**
-     * Creates a new instance of the demo.
-     * 
-     * @param title  the title.
-     * @param pipelineStatus 
+     * Constructor of the ViewerFrame
+     * @param appProperties Application properties
+     * @param title Title of the ViewerFrame
+     * @param owner instance of the Main class
+     * @param sortOptions Options for sorting project records
+     * @param recordUnits Project record units to be displayed
      */
     public ViewerFrame(final Properties appProperties, final String title, final Main owner, final ArrayList<String> sortOptions, final ArrayList<ProjectRecordUnit> recordUnits) {
         super(title);
         System.out.println("ViewerFrame constructor");
         this.owner = owner; 
         this.sortOptions = sortOptions;
-        this.recordUnits = recordUnits; 
         //TODO Algorithm for ordering record units
         for (int i = 0; i < recordUnits.size(); ++i) {
+        	this.recordUnits.add(recordUnits.get(i));
         	orderedRecordUnits.add(recordUnits.get(i));
-        	recordCheckBoxFlags.add(false); //initialize MarkCheckBox flag to false
+        	//initialize MarkCheckBox flag to false, linked to orderedRecordUnits
+        	recordCheckBoxFlags.add(false); 
         }
         for (int i = 0; i < sortOptions.size(); ++i) {
         	System.out.println("sortOption " + i + " = " +sortOptions.get(i));
@@ -113,15 +116,38 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         revalidate();
     }
     
-    
+    /**
+     * Overwrite all project record units
+     * The reason behind overwriting is changes to the EphrinSummaryFile.tsv file.
+     * @param newRecordUnits
+     */
+    public void overwriteRecordUnits(List<ProjectRecordUnit> newRecordUnits) {
+    	yCoordinate = 0; 
+        System.out.println("In overwriteRecordUnits yCoordinate = " + yCoordinate);
+        for (int i = 0; i < newRecordUnits.size(); ++i) {
+        	this.recordUnits.add(newRecordUnits.get(i));
+        	orderedRecordUnits.add(newRecordUnits.get(i));
+        	//initialize MarkCheckBox flag to false, linked to orderedRecordUnits
+        	recordCheckBoxFlags.add(false); 
+        }
+        setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, 600));
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        assembleComponents();
+        pack();
+        setVisible(true);
+        revalidate();
+    }
+
+    /**
+     * Assemble following components of the ViewerFrame:
+     * 1) ControlPanel 2) DesktopPane 
+     */
     private void assembleComponents() { 
         System.out.println("ViewerFrame assembleComponents");
         //We need one split pane to create 2 regions in the main frame
          //Add static (immovable) Control frame
         JInternalFrame controlFrame = getControlFrame();
-        
         int totalRecords = orderedRecordUnits.size();
-        
         if (totalRecords != 0) {
         	desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, totalRecords * (RECORD_HEIGHT + 15)));
             prepareRecordsInAscendingOrder(true);
@@ -136,7 +162,8 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     }
     
     /**
-     * Create Menu Bar for settings and about tab
+     * Create Menubar with Operations option
+     * @return Menubar to be displayed in the ViewerFrame
      */
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
@@ -274,7 +301,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         JPanel traitctmmPanel = new JPanel();
         traitctmmPanel.add(traitctmmLabel);
         JPanel controlPanel = new JPanel(new FlowLayout());
-        controlPanel.setPreferredSize(new Dimension(800, 150));
+        controlPanel.setPreferredSize(new Dimension(800, 140));
         controlPanel.add(oplPanel, 0);
         controlPanel.add(sortPanel, 1);
         controlPanel.add(traitctmmPanel, 2);
@@ -315,11 +342,12 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         controlFrame.setVisible(true);
         return controlFrame;
     }
-    
+
     /**
-     * Creates an internal frame.
-     * setSelected is required to preserve check boxes status in the display
-     * @return An internal frame.
+     * Create Internal Frame holding one project record unit
+     * @param displayNum Number of record unit
+     * @param recordUnit Record unit to be displayed
+     * @return
      */
     private JInternalFrame createRecordFrame(int displayNum, ProjectRecordUnit recordUnit) {
         System.out.print("ViewerFrame createRecordFrame " + recordUnit.getRecordNum() + " ");
@@ -393,7 +421,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     }
 
     /**
-     * 
+     * Prepare records to be displayed
      * @param flag if true, records will be prepared in ascending order. if false, the records will be prepared in descending order
      */
     private void prepareRecordsInAscendingOrder(boolean flag) {
@@ -417,6 +445,11 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         }
     }
     
+    /**
+     * Add new project record units to existing list
+     * Display new project record units
+     * @param newRecordUnits
+     */
     public void updateRecordUnits(List<ProjectRecordUnit> newRecordUnits) {
         System.out.println("In updateRecordUnits yCoordinate = " + yCoordinate);
         int numRecordUnits = orderedRecordUnits.size();
@@ -448,6 +481,9 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         revalidate();
     }
     
+    /**
+     * Update status of Ephrin
+     */
     public void updateEphrinStatus() {
         statusPanel.removeAll();
         int style = Font.BOLD;
@@ -463,6 +499,10 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         revalidate();
     }  
     
+    /**
+     * Append to existing status of Ephrin
+     * @param appendMessage
+     */
     public void appendEphrinStatus(String appendMessage) {
     	System.out.println("ViewerFrame::appendEphrinStatus " + appendMessage);
         statusPanel.removeAll();
@@ -478,16 +518,36 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         setVisible(true);
         revalidate();
     }  
-        
+    
+    /**
+     * Select unmarked records for saving to EphrinSummaryFile.tsv
+     * @return ArrayList of project records to be saved
+     */
+    
+    private ArrayList<ProjectRecordUnit> selectUnmarkedRecordUnits() {
+    	ArrayList<ProjectRecordUnit> unmarkedRecordUnits = new ArrayList<ProjectRecordUnit>();
+    	for (int i = 0; i < orderedRecordUnits.size(); ++i) {
+    		ProjectRecordUnit thisUnit = orderedRecordUnits.get(i);
+    		int index = thisUnit.getRecordNum() - 1; 
+    		if (recordCheckBoxFlags.get(index) == false) {
+    			unmarkedRecordUnits.add(thisUnit);
+    			System.out.println("Unit " + thisUnit.getRecordNum() + " is unmarked.");
+    		} else {
+    			System.out.println("Unit " + thisUnit.getRecordNum() + " is marked.");
+    		}
+    	}
+    	return unmarkedRecordUnits; 
+    }
+    
     /**
      * Process user input events.
      */
+    
     @Override
     public void actionPerformed(ActionEvent evt) {
         System.out.println("Corresponding action command is " + evt.getActionCommand() 
                 + " evt class = " + evt.getClass());
         //Check whether Details button is pressed - in order to open corresponding hyperlink 
-
         if (evt.getActionCommand().equals("ImportDirectory")) {
         	String txtDirectory = displayTxtDirectoryChooser();
         	if (txtDirectory != null && owner != null) {
@@ -495,13 +555,37 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         	}
         } else if (evt.getActionCommand().equals("SaveAllRecords")) {
         	owner.notifyOverwriteProjectRecords(recordUnits);
-        }
+        } else if (evt.getActionCommand().equals("DeleteMarkedRecords")) {
+        	//Select records to save
+        	ArrayList<ProjectRecordUnit> unmarkedRecordUnits = selectUnmarkedRecordUnits();
+        	owner.notifyOverwriteProjectRecords(unmarkedRecordUnits);
+        	clean();
+        	pack();
+        	setVisible(true);
+            revalidate();
+        	owner.notifyRefreshViewerFrame();
+        } 
     }
     
     /**
      * Remove and nullify all the report units GUI components
      */
     public void clean() {
+        if (desktopPane != null) {
+            desktopPane.removeAll();
+        }
+        if (recordCheckBoxFlags != null) {
+        	recordCheckBoxFlags.clear();
+        }
+        if (recordUnits != null) {
+        	recordUnits.clear();
+        }
+        if (orderedRecordUnits != null) {
+        	orderedRecordUnits.clear();
+        }
+        if (splitPane1 != null) {
+        	splitPane1.removeAll();
+        }
     }
     
     @Override
@@ -524,7 +608,10 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     public void mouseReleased(MouseEvent arg0) {
     }
     
-	
+	/**
+	 * Display user interface for choosing txt Folder
+	 * @return Absolute path of txt Folder selected by user
+	 */
 	 public String displayTxtDirectoryChooser () {
 	 JFileChooser chooser = new JFileChooser();
 	 	chooser.setName("Select txt Folder");
@@ -547,12 +634,23 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
 		
 	}
 
-
-	@Override
-	public void itemStateChanged(ItemEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void itemStateChanged(ItemEvent evt) {
+        //Find out index of selection, checked-unchecked and update CheckBoxList
+        if (evt.getSource().getClass().getName().equals("javax.swing.JCheckBox")) {
+            JCheckBox thisCheckBox = (JCheckBox) evt.getSource();
+            System.out.println("Check box name = " + thisCheckBox.getName());
+            int checkBoxFlagIndex = Integer.parseInt(thisCheckBox.getName());
+            //chartCheckBoxFlags will be maintained all the time according to recordNum
+            if (evt.getStateChange() == ItemEvent.SELECTED) {
+                System.out.print("Selected");
+                recordCheckBoxFlags.set(checkBoxFlagIndex, true);
+            } else if (evt.getStateChange() == ItemEvent.DESELECTED) {
+                System.out.print("DeSelected");
+                recordCheckBoxFlags.set(checkBoxFlagIndex, false); 
+            }
+        }
+    }
 
 }
 
