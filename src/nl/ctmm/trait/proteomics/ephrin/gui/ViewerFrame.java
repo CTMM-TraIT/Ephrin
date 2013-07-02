@@ -40,7 +40,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
-import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
@@ -73,7 +72,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private ArrayList<String> sortOptions = new ArrayList();
     private Main owner = null; 
     private static int RECORD_HEIGHT = 60; 
-    private static final int CHECK_PANEL_WIDTH = 140;
+    private static final int CHECK_PANEL_WIDTH = 120;
     private static final int RECORD_PANEL_WIDTH = 900;
     private static int DESKTOP_PANE_WIDTH = 1070; 
     private int yCoordinate = 0;
@@ -99,7 +98,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         this.recordUnits = recordUnits; 
         this.orderedRecordUnits = recordUnits; //TODO Algorithm for ordering record units
         for (int i = 0; i < recordUnits.size(); ++i) {
-        	recordCheckBoxFlags.add(false); //initialize CompareCheckBox flag to false
+        	recordCheckBoxFlags.add(false); //initialize MarkCheckBox flag to false
         }
         for (int i = 0; i < sortOptions.size(); ++i) {
         	System.out.println("sortOption " + i + " = " +sortOptions.get(i));
@@ -135,31 +134,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         }
     }
     
-    /*
-     *         //Add desktopPane for displaying graphs and other QC Control
-        int totalReports = orderedReportUnits.size();
-        
-        if (totalReports != 0) {
-            desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, totalReports * (CHART_HEIGHT + 15)));
-            prepareChartsInAscendingOrder(true);
-            splitPane2.add(new JScrollPane(desktopPane), 0);
-            ticGraphPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, 2 * CHART_HEIGHT));
-            splitPane2.add(new JScrollPane(ticGraphPane), 1);
-            //Set initial tic Graph - specify complete chart in terms of orderedReportUnits
-            setTicGraphPaneChart(orderedReportUnits.get(0).getReportNum() - 1);
-            splitPane2.setOneTouchExpandable(true); //hide-show feature
-            splitPane2.setDividerLocation(500); //DesktopPane holding graphs will appear 500 pixels large
-            splitPane1.add(controlFrame);
-            splitPane1.add(splitPane2);
-            splitPane1.setOneTouchExpandable(true); //hide-show feature
-            splitPane1.setDividerLocation(170); //control panel will appear 170 pixels large
-            splitPane1.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH + 15, (int)(6.5 * CHART_HEIGHT)));
-            getContentPane().add(splitPane1, "Center");
-            setJMenuBar(createMenuBar());
-        } 
-     */
-    
-    
     /**
      * Create Menu Bar for settings and about tab
      */
@@ -167,10 +141,20 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         JMenuBar menuBar = new JMenuBar();
         JMenu settingsMenu = new JMenu("Operations");
         menuBar.add(settingsMenu);
-        JMenuItem newDirAction = new JMenuItem("Search Directory...");
+        //Import project records from MaxQuant directory
+        JMenuItem newDirAction = new JMenuItem("Import Directory...");
         settingsMenu.add(newDirAction);
-        newDirAction.setActionCommand("SearchDirectory");
+        newDirAction.setActionCommand("ImportDirectory");
         newDirAction.addActionListener(this);
+        //Save all records in desktopPane
+        JMenuItem saveRecordsAction = new JMenuItem("Save All Records...");
+        settingsMenu.add(saveRecordsAction);
+        saveRecordsAction.setActionCommand("SaveAllRecords");
+        //Delete marked records
+        JMenuItem deleteRecordsAction = new JMenuItem("Delete Marked Records...");
+        settingsMenu.add(deleteRecordsAction);
+        deleteRecordsAction.setActionCommand("DeleteMarkedRecords");
+        deleteRecordsAction.addActionListener(this);
         JMenuItem aboutAction = new JMenuItem("About...");
         settingsMenu.add(aboutAction);
         aboutAction.setActionCommand("About");
@@ -230,8 +214,8 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             metricPanel.add(buttonPanel, 1);
             sortPanel.add(metricPanel);
         }
-        //Add sorting according to Compare 
-        JLabel thisLabel = new JLabel("Compare: ");
+        //Add sorting according to Mark 
+        JLabel thisLabel = new JLabel("Mark: ");
         thisLabel.setFont(font);
         thisLabel.setBackground(Color.WHITE);
         JPanel namePanel = new JPanel(new GridLayout(1,1));
@@ -240,14 +224,14 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         //Sort ascending button
         JRadioButton ascButton = new JRadioButton("Asc", false);
         ascButton.setBackground(Color.WHITE);
-        ascButton.setActionCommand("Sort@" + "Compare" + "@Asc");
+        ascButton.setActionCommand("Sort@" + "Mark" + "@Asc");
         ascButton.addActionListener(this);
         sortGroup.add(ascButton);
         sortButtons.add(ascButton);
         //Sort descending button
         JRadioButton desButton = new JRadioButton("Des", false);
         desButton.setBackground(Color.WHITE);
-        desButton.setActionCommand("Sort@" + "Compare" + "@Des");
+        desButton.setActionCommand("Sort@" + "Mark" + "@Des");
         desButton.addActionListener(this);
         sortGroup.add(desButton); 
         sortButtons.add(desButton); 
@@ -345,7 +329,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         int style = Font.BOLD;
         Font font = new Font ("Garamond", style , 11);
         //Create a checkbox for selection
-        JCheckBox recordCheckBox = new JCheckBox("Compare");
+        JCheckBox recordCheckBox = new JCheckBox("Mark");
         recordCheckBox.setFont(font);
         recordCheckBox.setBackground(Color.WHITE);
       //recordCheckBoxFlags are organized according to original record num 
@@ -354,24 +338,26 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         	recordCheckBox.setSelected(true); 
         } else recordCheckBox.setSelected(false);
         recordCheckBox.addItemListener(this);
-        JButton transmartButton = new JButton("TranSMART");
-        transmartButton.setFont(font);
-        transmartButton.setPreferredSize(new Dimension(100, 20));
-        transmartButton.setActionCommand("TranSMART-" + Integer.toString(recordUnit.getRecordNum()));
-        transmartButton.addActionListener(this);
-        
         JPanel checkPanel = new JPanel();
         checkPanel.setFont(font);
         checkPanel.setBackground(Color.WHITE);
         checkPanel.setForeground(Color.WHITE); 
         //GridLayout layout = new GridLayout(2, 1);
         //checkPanel.setLayout(layout);
-        checkPanel.add(transmartButton, 0);
-        checkPanel.add(recordCheckBox, 1);
         JLabel numLabel = new JLabel(Integer.toString(recordUnit.getRecordNum()));
         Font numFont = new Font ("Garamond", style , 22);
         numLabel.setFont(numFont);
-        checkPanel.add(numLabel);
+
+        JButton transmartButton = new JButton("TranSMART");
+        transmartButton.setFont(font);
+        transmartButton.setPreferredSize(new Dimension(100, 20));
+        transmartButton.setActionCommand("TranSMART-" + Integer.toString(recordUnit.getRecordNum()));
+        transmartButton.addActionListener(this);
+
+        checkPanel.add(transmartButton, 0);
+        checkPanel.add(numLabel, 1);
+        checkPanel.add(recordCheckBox, 2);
+        
         checkPanel.setPreferredSize(new Dimension(CHECK_PANEL_WIDTH, RECORD_HEIGHT));
         
         JPanel recordPanel = new JPanel();
@@ -439,7 +425,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
                 + " evt class = " + evt.getClass());
         //Check whether Details button is pressed - in order to open corresponding hyperlink 
 
-        if (evt.getActionCommand().equals("SearchDirectory")) {
+        if (evt.getActionCommand().equals("ImportDirectory")) {
         	String txtDirectory = displayTxtDirectoryChooser();
         	if (txtDirectory != null && owner != null) {
         		owner.notifyNewTxtDirectorySelected(txtDirectory);

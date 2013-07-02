@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 
 import nl.ctmm.trait.proteomics.ephrin.gui.ViewerFrame;
 import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
+import nl.ctmm.trait.proteomics.ephrin.input.SummaryFileReader;
 import nl.ctmm.trait.proteomics.ephrin.input.TemplateFileReader;
 import nl.ctmm.trait.proteomics.ephrin.input.TxtDirectoryReader;
 import nl.ctmm.trait.proteomics.ephrin.output.SummaryFileWriter;
@@ -19,6 +20,7 @@ public class Main {
     private ViewerFrame viewerFrame;
     private TemplateFileReader templateFileReader; 
     private SummaryFileWriter summaryFileWriter; 
+    private SummaryFileReader summaryFileReader; 
 
     private static Main instance = new Main();
     
@@ -41,11 +43,10 @@ public class Main {
      */
     private void createAndShowGUI(Properties appProperties) {
         //Create and set up the window.
-        viewerFrame = new ViewerFrame(appProperties, "Ephrin - Proteomics Project Tracker", instance, Constants.SORT_OPTION_NAMES, getRecordUnits());
+        viewerFrame = new ViewerFrame(appProperties, "Ephrin - Proteomics Project Tracker", instance, Constants.SORT_OPTION_NAMES, retrieveRecordUnits());
         viewerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         viewerFrame.pack();
         viewerFrame.setVisible(true);
-        
         //Create and set up the content pane.
         /*SummaryTable newContentPane = new SummaryTable();
         newContentPane.setOpaque(true); //content panes must be opaque
@@ -92,9 +93,13 @@ public class Main {
         */
     }
 
-    private ArrayList<ProjectRecordUnit> getRecordUnits() {
+    private ArrayList<ProjectRecordUnit> retrieveRecordUnits() {
     	ArrayList<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>();
-    	recordUnits.add(new ProjectRecordUnit(1, "QE1_130212_OPL0000", "QE1_130212_OPL0000_jurkat2ug_01|1|L01",
+    	summaryFileReader = SummaryFileReader.getInstance();
+    	recordUnits = summaryFileReader.retrieveProjectRecords();
+    	return recordUnits;
+    	
+    	/*recordUnits.add(new ProjectRecordUnit(1, "QE1_130212_OPL0000", "QE1_130212_OPL0000_jurkat2ug_01|1|L01",
     	         "Z:\\qe-raw-data\\sequences"));
     	recordUnits.add(new ProjectRecordUnit(2, "QE2_130219_OPL0000", "QE2_130219_OPL0000_jurkat2ug_02|1|L04",
     	         "C:\\Xcalibur\\methods\\nanoTune"));
@@ -103,12 +108,13 @@ public class Main {
     	recordUnits.add(new ProjectRecordUnit(4, "QE2_130415_OPL0000", "QE2_130415_OPL0000_jurkat2ug_01|1|L27",
     	         "C:\\Xcalibur\\methods\\nanoTune\\mstune"));
     	recordUnits.add(new ProjectRecordUnit(5, "QE1_130226_OPL0000", "QE2_130415_OPL0000_jurkat2ug_01|1|L26",
-    	         "C:\\qc-data\\QCArchive27Feb\\archive"));
-    	return recordUnits;
+    	         "C:\\qc-data\\QCArchive27Feb\\archive"));*/
     }
     
-	public void notifyNewTxtDirectorySelected(String txtDirectory) {
-		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectory);
-	    TxtDirectoryReader txtDirectoryReader = new TxtDirectoryReader(txtDirectory); 
+	public void notifyNewTxtDirectorySelected(String txtDirectoryName) {
+		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectoryName);
+	    TxtDirectoryReader txtDirectoryReader = TxtDirectoryReader.getInstance(); 
+	    ArrayList<ProjectRecordUnit> prUnits = txtDirectoryReader.RetrieveProjectRecords(txtDirectoryName);
+	    System.out.println(prUnits.size() + " new records found in " + txtDirectoryName);
 	}
 }

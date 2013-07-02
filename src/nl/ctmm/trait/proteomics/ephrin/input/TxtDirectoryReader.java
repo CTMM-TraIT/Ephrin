@@ -1,13 +1,31 @@
 package nl.ctmm.trait.proteomics.ephrin.input;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import nl.ctmm.trait.proteomics.ephrin.output.SummaryFileWriter;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 
 public class TxtDirectoryReader {
     
-    public TxtDirectoryReader (String txtDirectoryName) {
+	private static TxtDirectoryReader instance = new TxtDirectoryReader(); 
+	ArrayList<ProjectRecordUnit> projectRecordUnits = new ArrayList<ProjectRecordUnit>();
+	
+	public TxtDirectoryReader() {
+		
+	}
+
+	public static TxtDirectoryReader getInstance() {
+    	if (instance == null) {
+    		instance = new TxtDirectoryReader();
+    	}
+      return instance;
+    }
+	
+    public ArrayList<ProjectRecordUnit> RetrieveProjectRecords (String txtDirectoryName) {
+    	if (projectRecordUnits != null) {
+    		projectRecordUnits.clear();
+    	}
         final File txtDirectory = new File(txtDirectoryName);
         if (txtDirectory.exists()) {
             File txtParent = txtDirectory.getParentFile(); 
@@ -28,10 +46,14 @@ public class TxtDirectoryReader {
                    }
                 }
             }
+            if (secondLine.equals("")) {
+            	secondLine = "Invalid - No Template file found.";
+            }
             System.out.println("Record: " + projectName + " " + secondLine + " " 
                     + projectFolder);
-            ProjectRecordUnit projectrecordUnit = new ProjectRecordUnit(0, projectName, secondLine, projectFolder);
-            SummaryFileWriter.getInstance().addProjectRecordUnit(projectrecordUnit); 
+            ProjectRecordUnit prUnit = new ProjectRecordUnit(-1, projectName, secondLine, projectFolder);
+            projectRecordUnits.add(prUnit); 
         }
+        return projectRecordUnits;
     }
 }
