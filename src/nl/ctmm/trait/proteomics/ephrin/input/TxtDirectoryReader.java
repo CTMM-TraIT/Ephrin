@@ -39,8 +39,9 @@ public class TxtDirectoryReader {
         final File txtDirectory = new File(txtDirectoryName);
         if (txtDirectory.exists()) {
             File txtParent = txtDirectory.getParentFile(); 
-            String projectName = txtParent.getParentFile().getName();
-            String projectFolder = txtParent.getParentFile().getAbsolutePath();
+            File txtGrandpa = txtParent.getParentFile();
+            String projectName = txtGrandpa.getParentFile().getName();
+            String projectFolder = txtGrandpa.getParentFile().getAbsolutePath();
             String templateFilePath = "";
             String secondLine = "";
             final File[] files = txtDirectory.listFiles();
@@ -61,7 +62,7 @@ public class TxtDirectoryReader {
             }
             System.out.println("Record: " + projectName + " " + secondLine + " " 
                     + projectFolder);
-            ProjectRecordUnit prUnit = new ProjectRecordUnit(-1, projectName, secondLine, projectFolder);
+            ProjectRecordUnit prUnit = new ProjectRecordUnit(-1, projectName, secondLine, projectFolder, Constants.CATEGORY_UNKNOWN, Constants.NO_COMMENTS_TXT);
             projectRecordUnits.add(prUnit); 
         }
         return projectRecordUnits;

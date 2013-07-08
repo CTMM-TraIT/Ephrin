@@ -55,7 +55,8 @@ public class SummaryFileWriter {
             for (int i = 0; i < projectRecordUnits.size(); ++i) {
             	ProjectRecordUnit thisUnit = projectRecordUnits.get(i);
             	bWriter.write(thisUnit.getProjectName() + "\t" + 
-            			thisUnit.getFirstRawFile() + "\t" + thisUnit.getFolderPath() + "\n");
+            			thisUnit.getFirstRawFile() + "\t" + thisUnit.getFolderPath() + "\t" + 
+            			thisUnit.getCategory() + "\t" + thisUnit.getComment() + "\n");
             }            
             bWriter.close();
         } catch (IOException e) {

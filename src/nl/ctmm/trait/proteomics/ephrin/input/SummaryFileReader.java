@@ -52,9 +52,10 @@ public class SummaryFileReader {
 	    	   record = record.trim();
 	    	   System.out.println("record = " + record);
 	           if (record.length() > 0) {
-	        	   StringTokenizer stkz = new StringTokenizer(record, "\t"); 
+	        	   StringTokenizer stkz = new StringTokenizer(record, "\t");
+	        	   System.out.println("Number of tokens = " + stkz.countTokens());
 	        	   ProjectRecordUnit prUnit = new ProjectRecordUnit(++recordNum, stkz.nextToken(), 
-	        			   stkz.nextToken(), stkz.nextToken());
+	        			   stkz.nextToken(), stkz.nextToken(), stkz.nextToken(), stkz.nextToken());
 	        	   projectRecordUnits.add(prUnit);
 	           }
 	       }

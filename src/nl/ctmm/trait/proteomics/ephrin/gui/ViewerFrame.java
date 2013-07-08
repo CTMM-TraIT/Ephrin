@@ -17,6 +17,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
@@ -32,11 +34,15 @@ import java.util.Properties;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultDesktopManager;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
@@ -47,11 +53,16 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import nl.ctmm.trait.proteomics.ephrin.Main;
+
 import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
@@ -64,23 +75,30 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
  * @author <a href="mailto:freek.de.bruijn@nbic.nl">Freek de Bruijn</a>
  */
 
-public class ViewerFrame extends JFrame implements ActionListener, ItemListener, ChangeListener, MouseListener {
+public class ViewerFrame extends JFrame implements ActionListener, ItemListener, ChangeListener, MouseListener, FocusListener {
     private static final long serialVersionUID = 1L;
     private JDesktopPane desktopPane = new ScrollDesktop();
-    private ArrayList<String> sortOptions = new ArrayList();
+    private ArrayList<String> sortOptions = new ArrayList<String>();
     private Main owner = null; 
     private static int RECORD_HEIGHT = 60; 
     private static final int CHECK_PANEL_WIDTH = 120;
-    private static final int RECORD_PANEL_WIDTH = 900;
-    private static int DESKTOP_PANE_WIDTH = 1070; 
+    private static final int RECORD_PANEL_WIDTH = 800;
+    private static final int CATEGORY_PANEL_WIDTH = 100;
+    private static final int COMMENT_PANEL_WIDTH = 140;
+    private static int DESKTOP_PANE_WIDTH = 1260; 
     private int yCoordinate = 0;
+    //Check boxes to keep track of check boxes
     private List<Boolean> recordCheckBoxFlags = new ArrayList<Boolean>();
+    //Category List to keep track of edited categories
+    private List<Integer> recordCategories = new ArrayList<Integer>();
+    //Comment List to keep track of edited comments
+    private List<String> recordComments = new ArrayList<String>();
     private String currentSortCriteria; 
     private ArrayList<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>(); //preserve original record units 
     private ArrayList<ProjectRecordUnit> orderedRecordUnits = new ArrayList<ProjectRecordUnit>(); //use this list for display and other operations
     private JSplitPane splitPane1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT); 
-    private static final List<Color> LABEL_COLORS = Arrays.asList(
-            Color.BLUE, Color.DARK_GRAY, Color.GRAY, Color.MAGENTA, Color.ORANGE, Color.RED, Color.BLACK);
+    private static final List<Color> LABEL_COLORS = Arrays.asList(Color.BLUE, Color.DARK_GRAY);
+    //, Color.GRAY, Color.MAGENTA, Color.ORANGE, Color.RED, Color.BLACK
     private JPanel statusPanel;
     private String currentStatus = ""; 
     
@@ -103,6 +121,10 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         	orderedRecordUnits.add(recordUnits.get(i));
         	//initialize MarkCheckBox flag to false, linked to orderedRecordUnits
         	recordCheckBoxFlags.add(false); 
+        	//initialize recordCategory, linked to orderedRecordUnits
+        	recordCategories.add(recordUnits.get(i).getCategoryIndex());
+        	//initialize recordComment, linked to orderedRecordUnits
+        	recordComments.add(recordUnits.get(i).getComment());
         }
         for (int i = 0; i < sortOptions.size(); ++i) {
         	System.out.println("sortOption " + i + " = " +sortOptions.get(i));
@@ -149,7 +171,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         JInternalFrame controlFrame = getControlFrame();
         int totalRecords = orderedRecordUnits.size();
         if (totalRecords != 0) {
-        	desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, totalRecords * (RECORD_HEIGHT + 15)));
+        	desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, (totalRecords + 1) * (RECORD_HEIGHT + 5)));
             prepareRecordsInAscendingOrder(true);
             splitPane1.add(controlFrame, 0);
             splitPane1.add(new JScrollPane(desktopPane), 1);
@@ -328,15 +350,12 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             }
             @Override
             public void componentHidden(ComponentEvent arg0) {
-                // TODO Auto-generated method stub
             }
             @Override
             public void componentMoved(ComponentEvent arg0) {
-                // TODO Auto-generated method stub
             }
             @Override
             public void componentShown(ComponentEvent arg0) {
-                // TODO Auto-generated method stub
             }  
         });  
         controlFrame.setVisible(true);
@@ -356,7 +375,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         frame.setName(Integer.toString(recordUnit.getRecordNum() - 1)); //Set report index number as frame name
         javax.swing.plaf.InternalFrameUI ifu= frame.getUI();
         ((javax.swing.plaf.basic.BasicInternalFrameUI)ifu).setNorthPane(null);
-        int style = Font.BOLD;
+        int style = Font.PLAIN;
         Font font = new Font ("Garamond", style , 11);
         //Create a checkbox for selection
         JCheckBox recordCheckBox = new JCheckBox("Mark");
@@ -378,10 +397,10 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         Font numFont = new Font ("Garamond", style , 22);
         numLabel.setFont(numFont);
 
-        JButton transmartButton = new JButton("TranSMART");
+        JButton transmartButton = new JButton("tranSMART");
         transmartButton.setFont(font);
         transmartButton.setPreferredSize(new Dimension(100, 20));
-        transmartButton.setActionCommand("TranSMART-" + Integer.toString(recordUnit.getRecordNum()));
+        transmartButton.setActionCommand("tranSMART-" + Integer.toString(recordUnit.getRecordNum()));
         transmartButton.addActionListener(this);
 
         checkPanel.add(transmartButton, 0);
@@ -393,26 +412,78 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         JPanel recordPanel = new JPanel();
         recordPanel.setFont(font);
         recordPanel.setBackground(Color.WHITE);
-        GridLayout layout = new GridLayout(1, sortOptions.size());
+        GridLayout layout = new GridLayout(1, 3); //3 labels for ProjectName, FirstRawFile and ProjectFolder
         recordPanel.setLayout(layout);
         recordPanel.setPreferredSize(new Dimension(RECORD_PANEL_WIDTH, RECORD_HEIGHT));
         // add record labels, one in each cell
         Color fgColor = LABEL_COLORS.get(displayNum%LABEL_COLORS.size());
-        JLabel thisLabel = new JLabel(recordUnit.getProjectName());
-        thisLabel.setFont(font);
-        thisLabel.setForeground(fgColor);
-        recordPanel.add(thisLabel);
-        thisLabel = new JLabel(recordUnit.getFirstRawFile());
-        thisLabel.setFont(font);
-        thisLabel.setForeground(fgColor);
-        recordPanel.add(thisLabel);
-        thisLabel = new JLabel(recordUnit.getFolderPath());
-        thisLabel.setFont(font);
-        thisLabel.setForeground(fgColor);
-        recordPanel.add(thisLabel);
+        
+        JTextArea recordArea = new JTextArea();
+        recordArea.setText(recordUnit.getProjectName());
+        recordArea.setEditable(false);
+        recordArea.setFont(font);
+        recordArea.setLineWrap(true);
+        recordArea.setForeground(fgColor);
+        recordArea.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        recordPanel.add(recordArea);
+        
+        recordArea = new JTextArea();
+        recordArea.setText(recordUnit.getFirstRawFile());
+        recordArea.setEditable(false);
+        recordArea.setFont(font);
+        recordArea.setLineWrap(true);
+        recordArea.setForeground(fgColor);
+        recordArea.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        recordPanel.add(recordArea);
+        
+        recordArea = new JTextArea();
+        recordArea.setText(recordUnit.getFolderPath());
+        recordArea.setEditable(false);
+        recordArea.setFont(font);
+        recordArea.setLineWrap(true);
+        recordArea.setForeground(fgColor);
+        recordArea.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        recordPanel.add(recordArea);
+        
+        //Create the combo box, select item at index 2.
+        //Indices start at 0, so 2 specifies the unknown.
+        JComboBox<String> categoryCombo = new JComboBox<String>(Constants.CATEGORY_NAMES);
+        categoryCombo.setFont(font);
+        categoryCombo.setName(Integer.toString(recordUnit.getRecordNum() - 1));
+        categoryCombo.setSelectedIndex(recordUnit.getCategoryIndex());
+        categoryCombo.addActionListener(this);
+        JPanel categoryPanel = new JPanel();
+        categoryPanel.setFont(font);
+        categoryPanel.setBackground(Color.WHITE);
+        categoryPanel.setPreferredSize(new Dimension(CATEGORY_PANEL_WIDTH, RECORD_HEIGHT));
+        categoryPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        categoryPanel.add(categoryCombo);
+        
+      //Add JTextArea for entering comment
+        JTextArea commentArea = new JTextArea();
+        commentArea.setBorder(null);
+        commentArea.setName(Integer.toString(recordUnit.getRecordNum() - 1));
+        commentArea.setText(recordUnit.getComment());
+        commentArea.setPreferredSize(new Dimension(COMMENT_PANEL_WIDTH - 3, RECORD_HEIGHT - 5));
+        commentArea.setEditable(true);
+        commentArea.setLineWrap(true); 
+
+        commentArea.addFocusListener(this);
+
+        
+        //commentArea.addActionListener(this);
+        JPanel commentPanel = new JPanel();
+        commentPanel.setFont(font);
+        commentPanel.setBackground(Color.WHITE);
+        commentPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        commentPanel.setPreferredSize(new Dimension(COMMENT_PANEL_WIDTH, RECORD_HEIGHT));
+        commentPanel.add(commentArea);
+        
         JPanel displayPanel = new JPanel();
         displayPanel.add(checkPanel, 0);
         displayPanel.add(recordPanel, 1);
+        displayPanel.add(categoryPanel, 2);
+        displayPanel.add(commentPanel, 3);
         displayPanel.setBorder(null);
         frame.getContentPane().add(displayPanel);
         frame.addMouseListener(this);
@@ -421,13 +492,112 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     }
 
     /**
+     * Create Internal Frame holding Titles of columns
+     * @return
+     */
+    private JInternalFrame createTitleFrame() {
+        System.out.print("ViewerFrame createTitleFrame");
+        //Create the visible record panel
+        final JInternalFrame frame = new JInternalFrame("TitleFrame", false, false);
+        frame.setName("TitleFrame");
+        javax.swing.plaf.InternalFrameUI ifu= frame.getUI();
+        ((javax.swing.plaf.basic.BasicInternalFrameUI)ifu).setNorthPane(null);
+        int style = Font.BOLD;
+        Font font = new Font ("Garamond", style , 12);
+        JLabel checkLabel = new JLabel("CheckPanel");
+        checkLabel.setFont(font);
+        checkLabel.setBackground(Color.WHITE);
+        JPanel checkPanel = new JPanel();
+        checkPanel.setFont(font);
+        checkPanel.setBackground(Color.WHITE);
+        checkPanel.setForeground(Color.WHITE); 
+        checkPanel.add(checkLabel);
+        checkPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        checkPanel.setPreferredSize(new Dimension(CHECK_PANEL_WIDTH, RECORD_HEIGHT/2));
+
+        /*
+         * ArrayList<String> SORT_OPTION_NAMES = new ArrayList<String>(
+		    Arrays.asList("ProjectName", "FirstRAWFile", "ProjectFolder", "Category", "Comment"));
+         */
+        JPanel recordPanel = new JPanel();
+        recordPanel.setFont(font);
+        recordPanel.setBackground(Color.WHITE);
+        GridLayout layout = new GridLayout(1, 3); //3 labels for ProjectName, FirstRawFile and ProjectFolder
+        recordPanel.setLayout(layout);
+        recordPanel.setPreferredSize(new Dimension(RECORD_PANEL_WIDTH, RECORD_HEIGHT/2));
+        // add record labels, one in each cell
+        JLabel titleLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(0));
+        titleLabel.setFont(font);
+        titleLabel.setHorizontalAlignment( SwingConstants.CENTER);
+        titleLabel.setBackground(Color.WHITE);
+        titleLabel.setPreferredSize(new Dimension(RECORD_PANEL_WIDTH/3, RECORD_HEIGHT/2));
+        titleLabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        recordPanel.add(titleLabel);
+        titleLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(1));
+        titleLabel.setFont(font);
+        titleLabel.setHorizontalAlignment( SwingConstants.CENTER);
+        titleLabel.setBackground(Color.WHITE);
+        titleLabel.setPreferredSize(new Dimension(RECORD_PANEL_WIDTH/3, RECORD_HEIGHT/2));
+        titleLabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        recordPanel.add(titleLabel);
+        titleLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(2));
+        titleLabel.setFont(font);
+        titleLabel.setHorizontalAlignment( SwingConstants.CENTER);
+        titleLabel.setBackground(Color.WHITE);
+        titleLabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        recordPanel.add(titleLabel);
+
+        //Add the combo box label
+        JLabel categoryLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(3));
+        categoryLabel.setFont(font);
+        categoryLabel.setBackground(Color.WHITE);
+        JPanel categoryPanel = new JPanel();
+        categoryPanel.setFont(font);
+        categoryPanel.setBackground(Color.WHITE);
+        categoryPanel.setPreferredSize(new Dimension(CATEGORY_PANEL_WIDTH, RECORD_HEIGHT/2));
+        categoryPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        categoryPanel.add(categoryLabel);
+        
+      //Add the comment box label
+        JLabel commentLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(4));
+        commentLabel.setFont(font);
+        commentLabel.setBackground(Color.WHITE);
+        JPanel commentPanel = new JPanel();
+        commentPanel.setFont(font);
+        commentPanel.setBackground(Color.WHITE);
+        commentPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+        commentPanel.setPreferredSize(new Dimension(COMMENT_PANEL_WIDTH, RECORD_HEIGHT/2));
+        commentPanel.add(commentLabel);
+        
+        JPanel displayPanel = new JPanel();
+        displayPanel.add(checkPanel, 0);
+        displayPanel.add(recordPanel, 1);
+        displayPanel.add(categoryPanel, 2);
+        displayPanel.add(commentPanel, 3);
+        displayPanel.setBorder(null);
+        frame.getContentPane().add(displayPanel);
+        frame.addMouseListener(this);
+        frame.setBorder(null);
+        return frame;
+    }
+
+    
+    /**
      * Prepare records to be displayed
      * @param flag if true, records will be prepared in ascending order. if false, the records will be prepared in descending order
      */
     private void prepareRecordsInAscendingOrder(boolean flag) {
         System.out.println("ViewerFrame prepareRecordsInAscendingOrder");
         yCoordinate = 0;
-        System.out.println("No. of orderedReportUnits = " + orderedRecordUnits.size());
+        JInternalFrame titleFrame = createTitleFrame();
+        titleFrame.pack();
+        titleFrame.setLocation(0, yCoordinate);
+        titleFrame.setVisible(true);
+        desktopPane.add(titleFrame);
+
+        yCoordinate += RECORD_HEIGHT/2 + 5;
+        
+        System.out.println("No. of orderedRecordUnits = " + orderedRecordUnits.size());
         for (int i = 0; i < orderedRecordUnits.size(); ++i) {
             JInternalFrame recordFrame;
             if (flag) {
@@ -435,13 +605,12 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             } else {
                 recordFrame = createRecordFrame(i, orderedRecordUnits.get(orderedRecordUnits.size() - i - 1));
             }
-            recordFrame.setBorder(BorderFactory.createRaisedBevelBorder());
             recordFrame.pack();
             recordFrame.setLocation(0, yCoordinate);
             recordFrame.setVisible(true);
             desktopPane.add(recordFrame);
             System.out.println("yCoordinate = " + yCoordinate);
-            yCoordinate += RECORD_HEIGHT + 15;
+            yCoordinate += RECORD_HEIGHT + 5;
         }
     }
     
@@ -530,10 +699,12 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     		ProjectRecordUnit thisUnit = orderedRecordUnits.get(i);
     		int index = thisUnit.getRecordNum() - 1; 
     		if (recordCheckBoxFlags.get(index) == false) {
+    			thisUnit.setComment(recordComments.get(index));
+    			thisUnit.setCategoryByIndex(recordCategories.get(index)); 
     			unmarkedRecordUnits.add(thisUnit);
     			System.out.println("Unit " + thisUnit.getRecordNum() + " is unmarked.");
     		} else {
-    			System.out.println("Unit " + thisUnit.getRecordNum() + " is marked.");
+    			System.out.println("Unit " + thisUnit.getRecordNum() + " is marked for deletion.");
     		}
     	}
     	return unmarkedRecordUnits; 
@@ -564,7 +735,17 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         	setVisible(true);
             revalidate();
         	owner.notifyRefreshViewerFrame();
-        } 
+        } else if (evt.getActionCommand().equals("comboBoxChanged")) {
+        	if (evt.getSource().getClass().getName().equals("javax.swing.JComboBox")) {
+        		JComboBox<String> thisComboBox = (JComboBox<String>) evt.getSource();
+                int recordCategoryIndex = Integer.parseInt(thisComboBox.getName()); 
+                Integer selection = thisComboBox.getSelectedIndex();
+                recordCategories.remove(recordCategoryIndex);
+                recordCategories.add(recordCategoryIndex, selection);
+                System.out.println("Combo box name = " + thisComboBox.getName() + " Index = " + 
+                		recordCategoryIndex + " New value = " + selection);
+        	}
+        }
     }
     
     /**
@@ -585,6 +766,14 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         }
         if (splitPane1 != null) {
         	splitPane1.removeAll();
+        }
+        
+        if (recordCategories != null) {
+        	recordCategories.clear();
+        }
+        
+        if (recordComments != null) {
+        	recordComments.clear();
         }
     }
     
@@ -630,8 +819,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
 
 	@Override
 	public void stateChanged(ChangeEvent arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
     @Override
@@ -652,5 +839,21 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         }
     }
 
+	@Override
+	public void focusGained(FocusEvent arg0) {
+	}
+
+	@Override
+	public void focusLost(FocusEvent evt) {
+		if (evt.getSource().getClass().getName().equals("javax.swing.JTextArea")) {
+    		JTextArea thisTextArea = (JTextArea) evt.getSource();
+            int recordCommentsIndex = Integer.parseInt(thisTextArea.getName());
+            String comment = thisTextArea.getText();
+            recordComments.remove(recordCommentsIndex);
+            recordComments.add(recordCommentsIndex, comment);
+            System.out.println("Comment area name = " + thisTextArea.getName() + " Index = " + 
+            		recordCommentsIndex + " New comment = " + comment);
+    	}
+	}
 }
 
