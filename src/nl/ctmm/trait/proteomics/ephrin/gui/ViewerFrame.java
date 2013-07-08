@@ -74,6 +74,7 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
 //TODO Code refactoring
 //TODO Red status update
 //TODO Check for duplicate records
+//TODO SplitPane1 position 
 
 public class ViewerFrame extends JFrame implements ActionListener, ItemListener, ChangeListener, MouseListener, FocusListener {
     private static final long serialVersionUID = 1L;
