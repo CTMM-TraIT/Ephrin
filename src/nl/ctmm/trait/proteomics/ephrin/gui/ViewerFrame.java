@@ -34,15 +34,12 @@ import java.util.Properties;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
-import javax.swing.DefaultDesktopManager;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
-import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
@@ -54,7 +51,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
@@ -62,7 +58,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import nl.ctmm.trait.proteomics.ephrin.Main;
-
 import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
@@ -74,6 +69,11 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
  * @author <a href="mailto:pravin.pawar@nbic.nl">Pravin Pawar</a>
  * @author <a href="mailto:freek.de.bruijn@nbic.nl">Freek de Bruijn</a>
  */
+
+//TODO Algorithm for ordering record units
+//TODO Code refactoring
+//TODO Red status update
+//TODO Check for duplicate records
 
 public class ViewerFrame extends JFrame implements ActionListener, ItemListener, ChangeListener, MouseListener, FocusListener {
     private static final long serialVersionUID = 1L;
@@ -115,27 +115,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         System.out.println("ViewerFrame constructor");
         this.owner = owner; 
         this.sortOptions = sortOptions;
-        //TODO Algorithm for ordering record units
-        for (int i = 0; i < recordUnits.size(); ++i) {
-        	this.recordUnits.add(recordUnits.get(i));
-        	orderedRecordUnits.add(recordUnits.get(i));
-        	//initialize MarkCheckBox flag to false, linked to orderedRecordUnits
-        	recordCheckBoxFlags.add(false); 
-        	//initialize recordCategory, linked to orderedRecordUnits
-        	recordCategories.add(recordUnits.get(i).getCategoryIndex());
-        	//initialize recordComment, linked to orderedRecordUnits
-        	recordComments.add(recordUnits.get(i).getComment());
-        }
-        for (int i = 0; i < sortOptions.size(); ++i) {
-        	System.out.println("sortOption " + i + " = " +sortOptions.get(i));
-        }
-        setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, 600));
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        assembleComponents();
-        //setResizable(false);
-        setVisible(true);
-        // Finally refresh the frame.
-        revalidate();
+        overwriteRecordUnits(recordUnits);
     }
     
     /**
@@ -144,15 +124,18 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      * @param newRecordUnits
      */
     public void overwriteRecordUnits(List<ProjectRecordUnit> newRecordUnits) {
-    	yCoordinate = 0; 
-        System.out.println("In overwriteRecordUnits yCoordinate = " + yCoordinate);
+    	clean();
         for (int i = 0; i < newRecordUnits.size(); ++i) {
         	this.recordUnits.add(newRecordUnits.get(i));
         	orderedRecordUnits.add(newRecordUnits.get(i));
         	//initialize MarkCheckBox flag to false, linked to orderedRecordUnits
         	recordCheckBoxFlags.add(false); 
+        	//initialize recordCategory, linked to orderedRecordUnits
+        	recordCategories.add(recordUnits.get(i).getCategoryIndex());
+        	//initialize recordComment, linked to orderedRecordUnits
+        	recordComments.add(recordUnits.get(i).getComment());
         }
-        setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, 600));
+        setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, 1000));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         assembleComponents();
         pack();
@@ -337,7 +320,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         statusPanel.setBackground(Color.CYAN); 
         statusPanel.add(statusLabel);
         controlFrame.getContentPane().add(statusPanel, BorderLayout.SOUTH);
-        controlFrame.setSize(new Dimension(DESKTOP_PANE_WIDTH + 30, 170));
+        controlFrame.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH + 30, 170));
         controlFrame.pack();
         controlFrame.setLocation(0, 0);
         controlFrame.setResizable(false); 
@@ -469,8 +452,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         commentArea.setLineWrap(true); 
 
         commentArea.addFocusListener(this);
-
-        
         //commentArea.addActionListener(this);
         JPanel commentPanel = new JPanel();
         commentPanel.setFont(font);
@@ -588,13 +569,12 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      */
     private void prepareRecordsInAscendingOrder(boolean flag) {
         System.out.println("ViewerFrame prepareRecordsInAscendingOrder");
-        yCoordinate = 0;
+        yCoordinate = 5;
         JInternalFrame titleFrame = createTitleFrame();
         titleFrame.pack();
         titleFrame.setLocation(0, yCoordinate);
         titleFrame.setVisible(true);
         desktopPane.add(titleFrame);
-
         yCoordinate += RECORD_HEIGHT/2 + 5;
         
         System.out.println("No. of orderedRecordUnits = " + orderedRecordUnits.size());
@@ -631,18 +611,19 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
                 orderedRecordUnits.add(thisUnit);
                 System.out.println("Number of project record units = " + orderedRecordUnits.size());
                 recordCheckBoxFlags.add(false);
+                recordCategories.add(thisUnit.getCategoryIndex());
+                recordComments.add(thisUnit.getComment());
                 //update desktopFrame
                 JInternalFrame recordFrame = createRecordFrame(thisUnit.getRecordNum(), thisUnit);
-                recordFrame.setBorder(BorderFactory.createRaisedBevelBorder());
                 recordFrame.pack();
                 recordFrame.setLocation(0, yCoordinate);
                 desktopPane.add(recordFrame);
                 recordFrame.setVisible(true);
                 System.out.println("yCoordinate = " + yCoordinate);
-                yCoordinate +=  RECORD_HEIGHT + 15;
+                yCoordinate +=  RECORD_HEIGHT + 5;
                 System.out.println("Number of project record units = " + orderedRecordUnits.size());
            }
-           desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, numRecordUnits * (RECORD_HEIGHT + 15)));
+           desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, (numRecordUnits + 1) * (RECORD_HEIGHT + 5)));
            }
         updateEphrinStatus();
         pack();
@@ -689,23 +670,31 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     }  
     
     /**
-     * Select unmarked records for saving to EphrinSummaryFile.tsv
+     * Select records for saving to EphrinSummaryFile.tsv
+     * If marked == true: Do not select marked records
+     * If marked == false: Igonre marked records
      * @return ArrayList of project records to be saved
      */
     
-    private ArrayList<ProjectRecordUnit> selectUnmarkedRecordUnits() {
+    private ArrayList<ProjectRecordUnit> selectUnmarkedRecordUnits(boolean marked) {
     	ArrayList<ProjectRecordUnit> unmarkedRecordUnits = new ArrayList<ProjectRecordUnit>();
     	for (int i = 0; i < orderedRecordUnits.size(); ++i) {
     		ProjectRecordUnit thisUnit = orderedRecordUnits.get(i);
     		int index = thisUnit.getRecordNum() - 1; 
-    		if (recordCheckBoxFlags.get(index) == false) {
-    			thisUnit.setComment(recordComments.get(index));
-    			thisUnit.setCategoryByIndex(recordCategories.get(index)); 
+    		//Update thisUnit with edited comments and categories
+			thisUnit.setComment(recordComments.get(index));
+			thisUnit.setCategoryByIndex(recordCategories.get(index));
+			if (marked) { //Delete marked records
+	    		if (recordCheckBoxFlags.get(index) == false) {
+	    			unmarkedRecordUnits.add(thisUnit);
+	    			System.out.println("Unit " + thisUnit.getRecordNum() + " is unmarked and added for saving.");
+	    		} else {
+	    			System.out.println("Unit " + thisUnit.getRecordNum() + " is marked for deletion.");
+	    		}
+			} else {
     			unmarkedRecordUnits.add(thisUnit);
-    			System.out.println("Unit " + thisUnit.getRecordNum() + " is unmarked.");
-    		} else {
-    			System.out.println("Unit " + thisUnit.getRecordNum() + " is marked for deletion.");
-    		}
+    			System.out.println("Unit " + thisUnit.getRecordNum() + " is unmarked and added for saving.");
+			}
     	}
     	return unmarkedRecordUnits; 
     }
@@ -725,15 +714,13 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         		owner.notifyNewTxtDirectorySelected(txtDirectory);
         	}
         } else if (evt.getActionCommand().equals("SaveAllRecords")) {
-        	owner.notifyOverwriteProjectRecords(recordUnits);
+        	ArrayList<ProjectRecordUnit> allRecordUnits = selectUnmarkedRecordUnits(false);
+        	owner.notifyOverwriteProjectRecords(allRecordUnits);
+        	owner.notifyRefreshViewerFrame();
         } else if (evt.getActionCommand().equals("DeleteMarkedRecords")) {
         	//Select records to save
-        	ArrayList<ProjectRecordUnit> unmarkedRecordUnits = selectUnmarkedRecordUnits();
+        	ArrayList<ProjectRecordUnit> unmarkedRecordUnits = selectUnmarkedRecordUnits(true);
         	owner.notifyOverwriteProjectRecords(unmarkedRecordUnits);
-        	clean();
-        	pack();
-        	setVisible(true);
-            revalidate();
         	owner.notifyRefreshViewerFrame();
         } else if (evt.getActionCommand().equals("comboBoxChanged")) {
         	if (evt.getSource().getClass().getName().equals("javax.swing.JComboBox")) {
