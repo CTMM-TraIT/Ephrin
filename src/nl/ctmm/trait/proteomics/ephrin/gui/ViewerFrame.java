@@ -76,7 +76,7 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
 //TODO Check for duplicate records
 //TODO SplitPane1 position 
 
-public class ViewerFrame extends JFrame implements ActionListener, ItemListener, ChangeListener, MouseListener, FocusListener {
+public class ViewerFrame extends JFrame implements ActionListener, ItemListener, FocusListener {
     private static final long serialVersionUID = 1L;
     private JDesktopPane desktopPane = new ScrollDesktop();
     private ArrayList<String> sortOptions = new ArrayList<String>();
@@ -86,8 +86,25 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private static final int RECORD_PANEL_WIDTH = 800;
     private static final int CATEGORY_PANEL_WIDTH = 100;
     private static final int COMMENT_PANEL_WIDTH = 140;
-    private static int DESKTOP_PANE_WIDTH = 1260; 
+    private static final int SPLIT_PANE1_DIVIDER_LOCATION = 190;
+    private static final int SORT_PANEL_WIDTH = 600;
+    private static final int SORT_PANEL_HEIGHT = 130; 
+    private static final int EPHRIN_LOGO_HEIGHT = 130; 
+    private static final int EPHRIN_LOGO_WIDTH = 122;
+    private static final int CONTROL_PANEL_WIDTH = 1230; //includes oplPanel, sortPanel, traitctmmPanel
+    private static final int CONTROL_PANEL_HEIGHT = 150;
+    private static final int STATUS_PANEL_WIDTH = 1230;
+    private static final int STATUS_PANEL_HEIGHT = 25;
+    private static final int CONTROL_FRAME_WIDTH = 1000; //includes oplPanel, sortPanel, traitctmmPanel
+    private static final int CONTROL_FRAME_HEIGHT = 180;
+    private static final int DESKTOP_PANE_WIDTH = 1230; //Same as ViewerFrameWidth
+    private static final int VIEWER_FRAME_HEIGHT = 1000; 
+    public static final int TRANSMART_BUTTON_WIDTH = 100; 
+    public static final int TRANSMART_BUTTON_HEIGHT = 20;
+    
+    private Font statusFont = new Font ("Garamond", Font.BOLD , 11);
     private int yCoordinate = 0;
+    private  JInternalFrame controlFrame; 
     //Check boxes to keep track of check boxes
     private List<Boolean> recordCheckBoxFlags = new ArrayList<Boolean>();
     //Category List to keep track of edited categories
@@ -95,12 +112,13 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     //Comment List to keep track of edited comments
     private List<String> recordComments = new ArrayList<String>();
     private String currentSortCriteria; 
-    private ArrayList<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>(); //preserve original record units 
+    //private ArrayList<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>(); //preserve original record units 
     private ArrayList<ProjectRecordUnit> orderedRecordUnits = new ArrayList<ProjectRecordUnit>(); //use this list for display and other operations
     private JSplitPane splitPane1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT); 
     private static final List<Color> LABEL_COLORS = Arrays.asList(Color.BLUE, Color.DARK_GRAY);
     //, Color.GRAY, Color.MAGENTA, Color.ORANGE, Color.RED, Color.BLACK
     private JPanel statusPanel;
+    private JLabel statusLabel;
     private String currentStatus = ""; 
     
     /**
@@ -111,7 +129,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      * @param sortOptions Options for sorting project records
      * @param recordUnits Project record units to be displayed
      */
-    public ViewerFrame(final Properties appProperties, final String title, final Main owner, final ArrayList<String> sortOptions, final ArrayList<ProjectRecordUnit> recordUnits) {
+    public ViewerFrame(final String title, final Main owner, final ArrayList<String> sortOptions, final ArrayList<ProjectRecordUnit> recordUnits) {
         super(title);
         System.out.println("ViewerFrame constructor");
         this.owner = owner; 
@@ -125,20 +143,20 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      * @param newRecordUnits
      */
     public void overwriteRecordUnits(List<ProjectRecordUnit> newRecordUnits) {
-    	clean();
+    	cleanVariables();
         for (int i = 0; i < newRecordUnits.size(); ++i) {
-        	this.recordUnits.add(newRecordUnits.get(i));
         	orderedRecordUnits.add(newRecordUnits.get(i));
         	//initialize MarkCheckBox flag to false, linked to orderedRecordUnits
         	recordCheckBoxFlags.add(false); 
         	//initialize recordCategory, linked to orderedRecordUnits
-        	recordCategories.add(recordUnits.get(i).getCategoryIndex());
+        	recordCategories.add(newRecordUnits.get(i).getCategoryIndex());
         	//initialize recordComment, linked to orderedRecordUnits
-        	recordComments.add(recordUnits.get(i).getComment());
+        	recordComments.add(newRecordUnits.get(i).getComment());
         }
-        setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, 1000));
+        setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, VIEWER_FRAME_HEIGHT));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         assembleComponents();
+        setResizable(false);
         pack();
         setVisible(true);
         revalidate();
@@ -151,8 +169,9 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private void assembleComponents() { 
         System.out.println("ViewerFrame assembleComponents");
         //We need one split pane to create 2 regions in the main frame
-         //Add static (immovable) Control frame
-        JInternalFrame controlFrame = getControlFrame();
+        //Add static (immovable) Control frame
+        cleanGUIComponents();
+        controlFrame = getControlFrame();
         int totalRecords = orderedRecordUnits.size();
         if (totalRecords != 0) {
         	desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, (totalRecords + 1) * (RECORD_HEIGHT + 5)));
@@ -160,8 +179,8 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             splitPane1.add(controlFrame, 0);
             splitPane1.add(new JScrollPane(desktopPane), 1);
             splitPane1.setOneTouchExpandable(true); //hide-show feature
-            splitPane1.setDividerLocation(170); //control panel will appear 170 pixels large
-            splitPane1.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH + 15, (int)(6.5 * RECORD_HEIGHT)));
+            splitPane1.setVisible(true); 
+            splitPane1.setDividerLocation(SPLIT_PANE1_DIVIDER_LOCATION); //control panel will appear 170 pixels large
             getContentPane().add(splitPane1, "Center");
             setJMenuBar(createMenuBar());
         }
@@ -203,20 +222,20 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      */
     private JInternalFrame getControlFrame() {
         System.out.println("ViewerFrame getControlFrame");
-        JInternalFrame controlFrame = new JInternalFrame("Control Panel", true);
+        JInternalFrame controlFrame = new JInternalFrame("Control Panel", false);
         javax.swing.plaf.InternalFrameUI ifu= controlFrame.getUI();
         ((javax.swing.plaf.basic.BasicInternalFrameUI)ifu).setNorthPane(null);
         controlFrame.setBorder(null);
-        controlFrame.setLayout(new BorderLayout(0, 0));
+        controlFrame.setPreferredSize(new Dimension(CONTROL_FRAME_WIDTH, CONTROL_FRAME_HEIGHT));
+        controlFrame.setLayout(new FlowLayout());
         controlFrame.setBackground(Color.WHITE);
         
         ButtonGroup sortGroup = new ButtonGroup();
-
         GridLayout layout = new GridLayout(sortOptions.size()/2+1,2);
         ArrayList<JRadioButton> sortButtons = new ArrayList<JRadioButton>();
         JPanel sortPanel = new JPanel();
         sortPanel.setLayout(layout);
-        sortPanel.setPreferredSize(new Dimension(700, 130));
+        sortPanel.setPreferredSize(new Dimension(SORT_PANEL_WIDTH, SORT_PANEL_HEIGHT));
         sortPanel.setBackground(Color.WHITE); 
         int style = Font.BOLD;
         Font font = new Font ("Garamond", style , 11);
@@ -244,9 +263,11 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             JPanel buttonPanel = new JPanel(new GridLayout(1,2));
             buttonPanel.add(ascButton);
             buttonPanel.add(desButton);
+            buttonPanel.setBackground(Color.WHITE); 
             JPanel metricPanel = new JPanel(new GridLayout(1,2));
             metricPanel.add(namePanel, 0);
             metricPanel.add(buttonPanel, 1);
+            metricPanel.setBackground(Color.WHITE); 
             sortPanel.add(metricPanel);
         }
         //Add sorting according to Mark 
@@ -288,14 +309,14 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         BufferedImage ephrinLogo = null;
         try {
         	BufferedImage bigEphrinLogo = ImageIO.read(new File(Constants.PROPERTY_EPHRIN_LOGO_FILE));
-        	ephrinLogo = Utilities.scaleImage(bigEphrinLogo, Utilities.SCALE_FIT, 150, 122);
+        	ephrinLogo = Utilities.scaleImage(bigEphrinLogo, Utilities.SCALE_FIT, EPHRIN_LOGO_WIDTH, EPHRIN_LOGO_HEIGHT);
         } catch (IOException e) {
             e.printStackTrace();
         }
         JLabel oplLabel = new JLabel(new ImageIcon(ephrinLogo));
         JPanel oplPanel = new JPanel();
         oplPanel.add(oplLabel);
-        
+        oplPanel.setBackground(Color.WHITE);
         //Add traitlogo to control frame
         BufferedImage traitctmmLogo = null;
         try {
@@ -306,42 +327,28 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         JLabel traitctmmLabel = new JLabel(new ImageIcon(traitctmmLogo));
         JPanel traitctmmPanel = new JPanel();
         traitctmmPanel.add(traitctmmLabel);
+        traitctmmPanel.setBackground(Color.WHITE);
         JPanel controlPanel = new JPanel(new FlowLayout());
-        controlPanel.setPreferredSize(new Dimension(800, 140));
+        controlPanel.setPreferredSize(new Dimension(CONTROL_PANEL_WIDTH, CONTROL_PANEL_HEIGHT));
         controlPanel.add(oplPanel, 0);
         controlPanel.add(sortPanel, 1);
         controlPanel.add(traitctmmPanel, 2);
-        
-        controlFrame.getContentPane().add(controlPanel, BorderLayout.NORTH);
-        currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
-        JLabel statusLabel = new JLabel(currentStatus);
-        statusLabel.setFont(font);
+        //controlPanel.setBackground(Color.WHITE);
+        controlFrame.getContentPane().add(controlPanel);
+        if (currentStatus.equals("")) {
+            currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
+        }
+        statusLabel = new JLabel(currentStatus);
+        statusLabel.setFont(statusFont);
         statusLabel.setBackground(Color.CYAN);
         statusPanel = new JPanel();
         statusPanel.setBackground(Color.CYAN); 
         statusPanel.add(statusLabel);
-        controlFrame.getContentPane().add(statusPanel, BorderLayout.SOUTH);
-        controlFrame.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH + 30, 170));
+        statusPanel.setPreferredSize(new Dimension(STATUS_PANEL_WIDTH, STATUS_PANEL_HEIGHT)); 
+        controlFrame.getContentPane().add(statusPanel);
         controlFrame.pack();
         controlFrame.setLocation(0, 0);
         controlFrame.setResizable(false); 
-
-        //TODO avoid resizing and repositioning of components in the controlFrame
-        controlPanel.addComponentListener(new ComponentListener() {  
-            public void componentResized(ComponentEvent e) {  
-                //JPanel controlPanel = (JPanel)e.getSource();  
-                //controlPanel.setSize(new Dimension(DESKTOP_PANE_WIDTH + 30, 170));
-            }
-            @Override
-            public void componentHidden(ComponentEvent arg0) {
-            }
-            @Override
-            public void componentMoved(ComponentEvent arg0) {
-            }
-            @Override
-            public void componentShown(ComponentEvent arg0) {
-            }  
-        });  
         controlFrame.setVisible(true);
         return controlFrame;
     }
@@ -375,8 +382,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         checkPanel.setFont(font);
         checkPanel.setBackground(Color.WHITE);
         checkPanel.setForeground(Color.WHITE); 
-        //GridLayout layout = new GridLayout(2, 1);
-        //checkPanel.setLayout(layout);
         JLabel numLabel = new JLabel(Integer.toString(recordUnit.getRecordNum()));
         Font numFont = new Font ("Garamond", style , 22);
         numLabel.setFont(numFont);
@@ -468,7 +473,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         displayPanel.add(commentPanel, 3);
         displayPanel.setBorder(null);
         frame.getContentPane().add(displayPanel);
-        frame.addMouseListener(this);
         frame.setBorder(null);
         return frame;
     }
@@ -496,11 +500,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         checkPanel.add(checkLabel);
         checkPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
         checkPanel.setPreferredSize(new Dimension(CHECK_PANEL_WIDTH, RECORD_HEIGHT/2));
-
-        /*
-         * ArrayList<String> SORT_OPTION_NAMES = new ArrayList<String>(
-		    Arrays.asList("ProjectName", "FirstRAWFile", "ProjectFolder", "Category", "Comment"));
-         */
         JPanel recordPanel = new JPanel();
         recordPanel.setFont(font);
         recordPanel.setBackground(Color.WHITE);
@@ -558,7 +557,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         displayPanel.add(commentPanel, 3);
         displayPanel.setBorder(null);
         frame.getContentPane().add(displayPanel);
-        frame.addMouseListener(this);
         frame.setBorder(null);
         return frame;
     }
@@ -608,7 +606,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             for (int i = 0; i < newRecordUnits.size(); ++i) {
             	ProjectRecordUnit thisUnit = newRecordUnits.get(i);
              	thisUnit.setRecordNum(++numRecordUnits);
-                recordUnits.add(thisUnit);
+                //recordUnits.add(thisUnit);
                 orderedRecordUnits.add(thisUnit);
                 System.out.println("Number of project record units = " + orderedRecordUnits.size());
                 recordCheckBoxFlags.add(false);
@@ -624,50 +622,22 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
                 yCoordinate +=  RECORD_HEIGHT + 5;
                 System.out.println("Number of project record units = " + orderedRecordUnits.size());
            }
-           desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, (numRecordUnits + 1) * (RECORD_HEIGHT + 5)));
+            currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
+            currentStatus += " | | | | | " + newRecordUnits.size() + " project records added in the viewer (to be saved).";
            }
-        updateEphrinStatus();
-        pack();
-        setVisible(true);
-        revalidate();
     }
-    
-    /**
-     * Update status of Ephrin
-     */
-    public void updateEphrinStatus() {
-        statusPanel.removeAll();
-        int style = Font.BOLD;
-        Font font = new Font ("Garamond", style , 11);
-        currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
-        JLabel statusLabel = new JLabel (currentStatus);
-        statusLabel.setFont(font);
-        statusLabel.setBackground(Color.CYAN);
-        statusPanel.setBackground(Color.CYAN);
-        statusPanel.add(statusLabel);
-        pack();
-        setVisible(true);
-        revalidate();
-    }  
     
     /**
      * Append to existing status of Ephrin
      * @param appendMessage
      */
-    public void appendEphrinStatus(String appendMessage) {
-    	System.out.println("ViewerFrame::appendEphrinStatus " + appendMessage);
-        statusPanel.removeAll();
-        int style = Font.BOLD;
-        Font font = new Font ("Garamond", style , 11);
-        currentStatus += "| | | | " + appendMessage; 
-        JLabel statusLabel = new JLabel (currentStatus);
-        statusLabel.setFont(font);
-        statusLabel.setBackground(Color.CYAN);
-        statusPanel.setBackground(Color.CYAN);
-        statusPanel.add(statusLabel);
-        pack();
-        setVisible(true);
-        revalidate();
+    public void updateEphrinStatus(String appendMessage) {
+    	System.out.println("ViewerFrame::updateEphrinStatus " + appendMessage);
+    	currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
+        if (appendMessage != null) {
+        	currentStatus += " | | | | " + appendMessage; 
+        }
+        System.out.println("currentStatus = " + currentStatus);
     }  
     
     /**
@@ -739,50 +709,31 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     /**
      * Remove and nullify all the report units GUI components
      */
-    public void clean() {
-        if (desktopPane != null) {
-            desktopPane.removeAll();
-        }
+    public void cleanVariables() {
         if (recordCheckBoxFlags != null) {
         	recordCheckBoxFlags.clear();
         }
-        if (recordUnits != null) {
+        /*if (recordUnits != null) {
         	recordUnits.clear();
-        }
+        }*/
         if (orderedRecordUnits != null) {
         	orderedRecordUnits.clear();
         }
-        if (splitPane1 != null) {
-        	splitPane1.removeAll();
-        }
-        
         if (recordCategories != null) {
         	recordCategories.clear();
         }
-        
         if (recordComments != null) {
         	recordComments.clear();
         }
     }
     
-    @Override
-    public void mouseClicked(MouseEvent arg0) {
-    } 
-
-    @Override
-    public void mouseEntered(MouseEvent arg0) {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent arg0) {
-    }
-
-    @Override
-    public void mousePressed(MouseEvent arg0) {
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent arg0) {
+    public void cleanGUIComponents() {
+        if (desktopPane != null) {
+            desktopPane.removeAll();
+        }
+        if (splitPane1 != null) {
+        	splitPane1.removeAll();
+        }
     }
     
 	/**
@@ -803,11 +754,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
 	    } 
 	    return txtDirectory;
 	 }
-
-
-	@Override
-	public void stateChanged(ChangeEvent arg0) {
-	}
 
     @Override
     public void itemStateChanged(ItemEvent evt) {

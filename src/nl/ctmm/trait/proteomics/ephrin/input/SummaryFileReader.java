@@ -19,6 +19,11 @@ public class SummaryFileReader {
     final File summaryFile = new File(Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
 	ArrayList<ProjectRecordUnit> projectRecordUnits = new ArrayList<ProjectRecordUnit>();
     
+	/*
+	 * TODO: Routine for parsing header values and configuring viewer based on header information
+	 * ProjectName	FirstRawFileRecord	FolderPath	Category{Human;Mouse,Unknown;extra}	Comment{}
+	 */
+	
 	/**
 	 * Get instance of SummaryFileReader
 	 * @return instance of SummaryFileReader
