@@ -598,33 +598,43 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      * Display new project record units
      * @param newRecordUnits
      */
-    public void updateRecordUnits(List<ProjectRecordUnit> newRecordUnits) {
+    public void addRecordUnit(ProjectRecordUnit newRecordUnit) {
         System.out.println("In updateRecordUnits yCoordinate = " + yCoordinate);
         int numRecordUnits = orderedRecordUnits.size();
         System.out.println("Number of project record units = " + orderedRecordUnits.size());
-        if (newRecordUnits.size() > 0) {
-            for (int i = 0; i < newRecordUnits.size(); ++i) {
-            	ProjectRecordUnit thisUnit = newRecordUnits.get(i);
-             	thisUnit.setRecordNum(++numRecordUnits);
-                //recordUnits.add(thisUnit);
-                orderedRecordUnits.add(thisUnit);
-                System.out.println("Number of project record units = " + orderedRecordUnits.size());
-                recordCheckBoxFlags.add(false);
-                recordCategories.add(thisUnit.getCategoryIndex());
-                recordComments.add(thisUnit.getComment());
-                //update desktopFrame
-                JInternalFrame recordFrame = createRecordFrame(thisUnit.getRecordNum(), thisUnit);
-                recordFrame.pack();
-                recordFrame.setLocation(0, yCoordinate);
-                desktopPane.add(recordFrame);
-                recordFrame.setVisible(true);
-                System.out.println("yCoordinate = " + yCoordinate);
-                yCoordinate +=  RECORD_HEIGHT + 5;
-                System.out.println("Number of project record units = " + orderedRecordUnits.size());
-           }
-            currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
-            currentStatus += " | | | | | " + newRecordUnits.size() + " project records added in the viewer (to be saved).";
-           }
+        if (!duplicateRecordsCheck(newRecordUnit)) {
+        	newRecordUnit.setRecordNum(++numRecordUnits);
+            orderedRecordUnits.add(newRecordUnit);
+            System.out.println("Number of project record units = " + orderedRecordUnits.size());
+            recordCheckBoxFlags.add(false);
+            recordCategories.add(newRecordUnit.getCategoryIndex());
+            recordComments.add(newRecordUnit.getComment());
+            //update desktopFrame
+            JInternalFrame recordFrame = createRecordFrame(newRecordUnit.getRecordNum(), newRecordUnit);
+            recordFrame.pack();
+            recordFrame.setVisible(true);
+            recordFrame.setLocation(0, yCoordinate);
+            desktopPane.add(recordFrame);
+            revalidate();
+            System.out.println("yCoordinate = " + yCoordinate);
+            yCoordinate +=  RECORD_HEIGHT + 5;
+            System.out.println("Number of project record units = " + orderedRecordUnits.size());
+        } else {
+         	System.out.println("Warning!! The new project record " + newRecordUnit.getProjectName() + " already exists in EphrinSummaryFile.tsv.");
+        }
+           currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
+           currentStatus += " | | | | | " + newRecordUnit.getProjectName() + " record added in the viewer (to be saved).";
+    }
+    
+    private boolean duplicateRecordsCheck(ProjectRecordUnit newRecordUnit) {
+    	String newProjectName = newRecordUnit.getProjectName().trim();
+    	for (int i = 0; i < orderedRecordUnits.size(); ++i) {
+    		String thisProjectName = orderedRecordUnits.get(i).getProjectName().trim();
+    		if (newProjectName.equals(thisProjectName)) {
+    			return true; //signifying duplicate record
+    		}
+    	}
+    	return false; //New record is not a duplicate record
     }
     
     /**

@@ -13,7 +13,6 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 public class TxtDirectoryReader {
     
 	private static TxtDirectoryReader instance = new TxtDirectoryReader(); 
-	ArrayList<ProjectRecordUnit> projectRecordUnits = new ArrayList<ProjectRecordUnit>();
 
 	/**
 	 * Get instance of TxtDirectoryReader
@@ -32,11 +31,9 @@ public class TxtDirectoryReader {
 	 * @return ArrayList containing project record unit
 	 */
 	
-    public ArrayList<ProjectRecordUnit> RetrieveProjectRecords (String txtDirectoryName) {
-    	if (projectRecordUnits != null) {
-    		projectRecordUnits.clear();
-    	}
+    public ProjectRecordUnit RetrieveProjectRecord (String txtDirectoryName) {
         final File txtDirectory = new File(txtDirectoryName);
+        ProjectRecordUnit prUnit = null; 
         if (txtDirectory.exists()) {
             File txtParent = txtDirectory.getParentFile(); 
             File txtGrandpa = txtParent.getParentFile();
@@ -62,9 +59,8 @@ public class TxtDirectoryReader {
             }
             System.out.println("Record: " + projectName + " " + secondLine + " " 
                     + projectFolder);
-            ProjectRecordUnit prUnit = new ProjectRecordUnit(-1, projectName, secondLine, projectFolder, Constants.CATEGORY_UNKNOWN, Constants.NO_COMMENTS_TXT);
-            projectRecordUnits.add(prUnit); 
+            prUnit = new ProjectRecordUnit(-1, projectName, secondLine, projectFolder, Constants.CATEGORY_UNKNOWN, Constants.NO_COMMENTS_TXT);
         }
-        return projectRecordUnits;
+        return prUnit;
     }
 }

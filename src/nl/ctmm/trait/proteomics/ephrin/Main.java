@@ -5,20 +5,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import javax.swing.JFrame;
-
 import nl.ctmm.trait.proteomics.ephrin.gui.ViewerFrame;
 import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
 import nl.ctmm.trait.proteomics.ephrin.input.SummaryFileReader;
-import nl.ctmm.trait.proteomics.ephrin.input.TemplateFileReader;
 import nl.ctmm.trait.proteomics.ephrin.input.TxtDirectoryReader;
 import nl.ctmm.trait.proteomics.ephrin.output.SummaryFileWriter;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 
 public class Main {
-	private Properties applicationProperties = null; 
-    private ViewerFrame viewerFrame;
-    private TemplateFileReader templateFileReader; 
+	private ViewerFrame viewerFrame;
     private SummaryFileWriter summaryFileWriter; 
     private SummaryFileReader summaryFileReader; 
 
@@ -113,9 +108,9 @@ public class Main {
 	public void notifyNewTxtDirectorySelected(String txtDirectoryName) {
 		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectoryName);
 	    TxtDirectoryReader txtDirectoryReader = TxtDirectoryReader.getInstance(); 
-	    ArrayList<ProjectRecordUnit> prUnits = txtDirectoryReader.RetrieveProjectRecords(txtDirectoryName);
-	    System.out.println(prUnits.size() + " new records found in " + txtDirectoryName);
-	    viewerFrame.updateRecordUnits(prUnits);
+	    ProjectRecordUnit prUnit = txtDirectoryReader.RetrieveProjectRecord(txtDirectoryName);
+	    System.out.println("New records found in " + txtDirectoryName + " with project name " + prUnit.getProjectName());
+	    viewerFrame.addRecordUnit(prUnit);
 	}
 
 	/**
