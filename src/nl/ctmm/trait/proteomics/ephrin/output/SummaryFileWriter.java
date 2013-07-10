@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
+import nl.ctmm.trait.proteomics.ephrin.input.SummaryFileReader;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 
 /**
@@ -24,6 +25,7 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 
 public class SummaryFileWriter {
 	private static SummaryFileWriter instance = new SummaryFileWriter();
+	private static SummaryFileReader sfrInstance = SummaryFileReader.getInstance(); 
     final File summaryFile = new File(Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
 	
     /**
@@ -66,12 +68,14 @@ public class SummaryFileWriter {
             BufferedWriter bWriter = new BufferedWriter(fWriter);
         	//Write first line to the summary file
             bWriter.write(firstLine + "\n");
+            ArrayList<String> paramNames = sfrInstance.getSortOptionsNames();
         	//overwrite project records
             for (int i = 0; i < projectRecordUnits.size(); ++i) {
             	ProjectRecordUnit thisUnit = projectRecordUnits.get(i);
-            	bWriter.write(thisUnit.getProjectName() + "\t" + 
-            			thisUnit.getFirstRawFile() + "\t" + thisUnit.getFolderPath() + "\t" + 
-            			thisUnit.getCategory() + "\t" + thisUnit.getComment() + "\n");
+            	for (int j = 0; j < paramNames.size(); ++j) {
+            		bWriter.write(thisUnit.getParameterValueFromKey(paramNames.get(j)) + "\t");
+            	}
+            	bWriter.write("\n");
             }            
             bWriter.close();
         } catch (IOException e) {
@@ -80,20 +84,5 @@ public class SummaryFileWriter {
         }
         return true;
     }
-    
-    /**
-     * Append project record unit to the end of EphrinSummaryFile.tsv
-     * @param projectRecordUnit project record unit to be appended
-     */
-	public void addProjectRecordUnit(ProjectRecordUnit projectRecordUnit) {
-        try {
-            FileWriter fWriter = new FileWriter(summaryFile, true);
-            BufferedWriter bWriter = new BufferedWriter(fWriter);
-            bWriter.write(projectRecordUnit.getProjectName() + "\t" + 
-            		projectRecordUnit.getFirstRawFile() + "\t" + projectRecordUnit.getFolderPath() + "\n");
-            bWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-	}
+
 }

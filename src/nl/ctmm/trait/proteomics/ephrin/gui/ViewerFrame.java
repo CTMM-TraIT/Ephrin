@@ -7,7 +7,6 @@ package nl.ctmm.trait.proteomics.ephrin.gui;
  * Swing layout: http://www.cs101.org/courses/fall05/resources/swinglayout/
  */
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -15,21 +14,16 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -54,11 +48,10 @@ import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import nl.ctmm.trait.proteomics.ephrin.Main;
 import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
+import nl.ctmm.trait.proteomics.ephrin.input.SummaryFileReader;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
 
@@ -109,7 +102,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     //Check boxes to keep track of check boxes
     private List<Boolean> recordCheckBoxFlags = new ArrayList<Boolean>();
     //Category List to keep track of edited categories
-    private List<Integer> recordCategories = new ArrayList<Integer>();
+    private List<String> recordCategories = new ArrayList<String>();
     //Comment List to keep track of edited comments
     private List<String> recordComments = new ArrayList<String>();
     private String currentSortCriteria; 
@@ -157,9 +150,11 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         	//initialize MarkCheckBox flag to false, linked to orderedRecordUnits
         	recordCheckBoxFlags.add(false); 
         	//initialize recordCategory, linked to orderedRecordUnits
-        	recordCategories.add(newRecordUnits.get(i).getCategoryIndex());
+        	//It is assumed that category is 3rd index in sortOptions
+        	recordCategories.add(newRecordUnits.get(i).getParameterValueFromKey(sortOptions.get(3))); 
         	//initialize recordComment, linked to orderedRecordUnits
-        	recordComments.add(newRecordUnits.get(i).getComment());
+        	//It is assumed that category is 3rd index in sortOptions
+        	recordComments.add(newRecordUnits.get(i).getParameterValueFromKey(sortOptions.get(4)));
         }
         setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, VIEWER_FRAME_HEIGHT));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -432,7 +427,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         Color fgColor = LABEL_COLORS.get(displayNum%LABEL_COLORS.size());
         
         JTextArea recordArea = new JTextArea();
-        recordArea.setText(recordUnit.getProjectName());
+        recordArea.setText(recordUnit.getParameterValueFromKey(sortOptions.get(0)));
         recordArea.setEditable(false);
         recordArea.setFont(font);
         recordArea.setLineWrap(true);
@@ -441,7 +436,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         recordPanel.add(recordArea);
         
         recordArea = new JTextArea();
-        recordArea.setText(recordUnit.getFirstRawFile());
+        recordArea.setText(recordUnit.getParameterValueFromKey(sortOptions.get(1)));
         recordArea.setEditable(false);
         recordArea.setFont(font);
         recordArea.setLineWrap(true);
@@ -450,7 +445,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         recordPanel.add(recordArea);
         
         recordArea = new JTextArea();
-        recordArea.setText(recordUnit.getFolderPath());
+        recordArea.setText(recordUnit.getParameterValueFromKey(sortOptions.get(2)));
         recordArea.setEditable(false);
         recordArea.setFont(font);
         recordArea.setLineWrap(true);
@@ -464,7 +459,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         JComboBox<String> categoryCombo = new JComboBox<String>(categoryStrings);
         categoryCombo.setFont(font);
         categoryCombo.setName(Integer.toString(recordUnit.getRecordNum() - 1));
-        categoryCombo.setSelectedIndex(recordUnit.getCategoryIndex());
+        categoryCombo.setSelectedItem(recordUnit.getParameterValueFromKey(sortOptions.get(3)));
         categoryCombo.addActionListener(this);
         JPanel categoryPanel = new JPanel();
         categoryPanel.setFont(font);
@@ -477,7 +472,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         JTextArea commentArea = new JTextArea();
         commentArea.setBorder(null);
         commentArea.setName(Integer.toString(recordUnit.getRecordNum() - 1));
-        commentArea.setText(recordUnit.getComment());
+        commentArea.setText(recordUnit.getParameterValueFromKey(sortOptions.get(4)));
         commentArea.setPreferredSize(new Dimension(COMMENT_PANEL_WIDTH - 3, RECORD_HEIGHT - 5));
         commentArea.setEditable(true);
         commentArea.setLineWrap(true); 
@@ -630,8 +625,8 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             orderedRecordUnits.add(newRecordUnit);
             System.out.println("Number of project record units = " + orderedRecordUnits.size());
             recordCheckBoxFlags.add(false);
-            recordCategories.add(newRecordUnit.getCategoryIndex());
-            recordComments.add(newRecordUnit.getComment());
+            recordCategories.add(newRecordUnit.getParameterValueFromKey(sortOptions.get(3)));
+            recordComments.add(newRecordUnit.getParameterValueFromKey(sortOptions.get(4)));
             //update desktopFrame
             System.out.println("Getting new record frame..");
             JInternalFrame recordFrame = createRecordFrame(newRecordUnit.getRecordNum(), newRecordUnit);
@@ -647,10 +642,10 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             System.out.println("yCoordinate = " + yCoordinate);
             yCoordinate +=  RECORD_HEIGHT + 5;
             System.out.println("Number of project record units = " + orderedRecordUnits.size());
-            appendMessage = newRecordUnit.getProjectName() + " record added in the viewer (to be saved).";
+            appendMessage = newRecordUnit.getParameterValueFromKey(sortOptions.get(0)) + " record added in the viewer (to be saved).";
         } else {
-         	System.out.println("Warning!! The project record " + newRecordUnit.getProjectName() + " already exists in EphrinSummaryFile.tsv.");
-         	appendMessage = "Warning!! The project record " + newRecordUnit.getProjectName() + " already exists in EphrinSummaryFile.tsv.";
+         	System.out.println("Warning!! The project record " + newRecordUnit.getParameterValueFromKey(sortOptions.get(0)) + " already exists in EphrinSummaryFile.tsv.");
+         	appendMessage = "Warning!! The project record " + newRecordUnit.getParameterValueFromKey(sortOptions.get(0)) + " already exists in EphrinSummaryFile.tsv.";
         } 
            desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, (numRecordUnits + 1) * (RECORD_HEIGHT + 5)));           
            assembleSplitPane1();
@@ -661,9 +656,9 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     }
     
     private boolean duplicateRecordsCheck(ProjectRecordUnit newRecordUnit) {
-    	String newProjectName = newRecordUnit.getProjectName().trim();
+    	String newProjectName = newRecordUnit.getParameterValueFromKey(sortOptions.get(0)).trim();
     	for (int i = 0; i < orderedRecordUnits.size(); ++i) {
-    		String thisProjectName = orderedRecordUnits.get(i).getProjectName().trim();
+    		String thisProjectName = orderedRecordUnits.get(i).getParameterValueFromKey(sortOptions.get(0)).trim();
     		if (newProjectName.equals(thisProjectName)) {
     			return true; //signifying duplicate record
     		}
@@ -708,7 +703,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     		int index = thisUnit.getRecordNum() - 1; 
     		//Update thisUnit with edited comments and categories
 			thisUnit.setComment(recordComments.get(index));
-			thisUnit.setCategoryByIndex(recordCategories.get(index));
+			thisUnit.setCategory(recordCategories.get(index));
 			if (marked) { //Delete marked records
 	    		if (recordCheckBoxFlags.get(index) == false) {
 	    			unmarkedRecordUnits.add(thisUnit);
@@ -749,7 +744,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         	if (evt.getSource().getClass().getName().equals("javax.swing.JComboBox")) {
         		JComboBox<String> thisComboBox = (JComboBox<String>) evt.getSource();
                 int recordCategoryIndex = Integer.parseInt(thisComboBox.getName()); 
-                Integer selection = thisComboBox.getSelectedIndex();
+                String selection = (String)thisComboBox.getSelectedItem();
                 recordCategories.remove(recordCategoryIndex);
                 recordCategories.add(recordCategoryIndex, selection);
                 System.out.println("Combo box name = " + thisComboBox.getName() + " Index = " + 

@@ -134,7 +134,7 @@ public class Main {
 		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectoryName);
 	    TxtDirectoryReader txtDirectoryReader = TxtDirectoryReader.getInstance(); 
 	    ProjectRecordUnit prUnit = txtDirectoryReader.RetrieveProjectRecord(txtDirectoryName);
-	    System.out.println("New records found in " + txtDirectoryName + " with project name " + prUnit.getProjectName());
+	    System.out.println("New record found in " + txtDirectoryName);
 	    viewerFrame.addRecordUnit(prUnit);
 	}
 

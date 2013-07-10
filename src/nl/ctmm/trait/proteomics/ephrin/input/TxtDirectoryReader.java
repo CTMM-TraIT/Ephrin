@@ -13,7 +13,7 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 public class TxtDirectoryReader {
     
 	private static TxtDirectoryReader instance = new TxtDirectoryReader(); 
-
+	private static SummaryFileReader sfrInstance = SummaryFileReader.getInstance(); 
 	/**
 	 * Get instance of TxtDirectoryReader
 	 * @return instance of TxtDirectoryReader
@@ -59,7 +59,14 @@ public class TxtDirectoryReader {
             }
             System.out.println("Record: " + projectName + " " + secondLine + " " 
                     + projectFolder);
-            prUnit = new ProjectRecordUnit(-1, projectName, secondLine, projectFolder, Constants.CATEGORY_UNKNOWN, Constants.NO_COMMENTS_TXT);
+            
+            ArrayList<String> parameterValues = new ArrayList<String>();
+            parameterValues.add(projectName);
+            parameterValues.add(secondLine);
+            parameterValues.add(projectFolder);
+            parameterValues.add(Constants.CATEGORY_UNKNOWN);
+            parameterValues.add(Constants.NO_COMMENTS_TXT);
+            prUnit = new ProjectRecordUnit(-1, parameterValues, sfrInstance.getSortOptionsNames(), sfrInstance.getCategories());
         }
         return prUnit;
     }

@@ -139,8 +139,11 @@ public class SummaryFileReader {
 	           if (record.length() > 0) {
 	        	   StringTokenizer stkz = new StringTokenizer(record, "\t");
 	        	   System.out.println("Number of tokens = " + stkz.countTokens());
-	        	   ProjectRecordUnit prUnit = new ProjectRecordUnit(++recordNum, stkz.nextToken(), 
-	        			   stkz.nextToken(), stkz.nextToken(), stkz.nextToken(), stkz.nextToken());
+	        	   ArrayList<String> parameterValues = new ArrayList<String>();
+	        	   while (stkz.hasMoreTokens()) {
+	        		   parameterValues.add(stkz.nextToken().trim()); 
+	        	   }
+	        	   ProjectRecordUnit prUnit = new ProjectRecordUnit(++recordNum, parameterValues, sortOptionsNames, categories);
 	        	   projectRecordUnits.add(prUnit);
 	           }
 	       }
