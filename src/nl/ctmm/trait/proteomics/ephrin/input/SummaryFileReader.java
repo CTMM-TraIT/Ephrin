@@ -18,12 +18,92 @@ public class SummaryFileReader {
 	private static SummaryFileReader instance = new SummaryFileReader();
     final File summaryFile = new File(Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
 	ArrayList<ProjectRecordUnit> projectRecordUnits = new ArrayList<ProjectRecordUnit>();
-    
+	ArrayList<String> sortOptionsNames = new ArrayList<String>();
+	ArrayList<String> categories = new ArrayList<String>();
 	/*
-	 * TODO: Routine for parsing header values and configuring viewer based on header information
-	 * ProjectName	FirstRawFileRecord	FolderPath	Category{Human;Mouse,Unknown;extra}	Comment{}
+	 * Parsing header values and configuring viewer based on header information
+	 * ProjectName	FirstRawFileRecord	FolderPath	Category{Human;Mouse;Unknown}	Comment{}
 	 */
 	
+	/**
+	 * Constructor. Parse sort options and categories based on information in the first line
+	 * ProjectName	FirstRawFileRecord	FolderPath	Category{Human;Mouse;Unknown}	Comment{}
+	 */
+    public SummaryFileReader() {
+	    try {
+		       InputStreamReader streamReader = new InputStreamReader(new FileInputStream(summaryFile));
+		       BufferedReader br = new BufferedReader(streamReader);
+		       String firstLine = "";
+		       while (br.ready() && firstLine.equals("")) {
+		    	   firstLine = br.readLine().trim(); //Skip first line
+		    	   System.out.println("FirstLine = " + firstLine);
+		       }
+		       br.close();
+		       streamReader.close(); 
+		       if (firstLine.length() > 0) {
+		    	   parseSortOptionsNames(firstLine); 
+		       }
+		    } catch (Exception e) {
+		        System.out.println(e.toString());
+		    }
+    }
+    
+    /**
+     * Parse sort options from the first line of EphrinSummaryFile.tsv
+     * @param firstLine
+     */
+    private void parseSortOptionsNames(String firstLine) {
+    	StringTokenizer stkz = new StringTokenizer(firstLine, "\t"); 
+    	while (stkz.hasMoreTokens()) {
+    		String sortOption = stkz.nextToken().trim(); 
+    		if (sortOption.startsWith("Category")) {
+    			parseCategories(sortOption);
+    			sortOptionsNames.add("Category");
+    		} else {
+    			sortOptionsNames.add(sortOption);
+    		}
+    	}
+    	System.out.println("Following are sort options:");
+    	for (int i = 0; i < sortOptionsNames.size(); ++i) {
+    		System.out.print(sortOptionsNames.get(i) + " ");
+    	}
+    	System.out.println();
+    }
+    
+    /**
+     * Parse categories from the categoryString
+     * @param categoryString
+     */
+    private void parseCategories(String categoryString) {
+    	StringTokenizer stkz = new StringTokenizer(categoryString, "{;}");
+    	stkz.nextToken();
+    	while (stkz.hasMoreTokens()) {
+    		categories.add(stkz.nextToken());
+    	}
+    	System.out.println("Following are categories:");
+    	for (int i = 0; i < categories.size(); ++i) {
+    		System.out.print(categories.get(i) + " ");
+    	}
+    	System.out.println();
+    }
+    
+    /**
+     * Get column names and sort options
+     * @return sortOptionsNames
+     */
+    public ArrayList<String> getSortOptionsNames() {
+    	return sortOptionsNames;
+    }
+    
+    /**
+     * Get categories list e.g. Human, Mouse, Unknown
+     * @return categories
+     */
+    public ArrayList<String> getCategories() {
+    	return categories;
+    }
+    
+    
 	/**
 	 * Get instance of SummaryFileReader
 	 * @return instance of SummaryFileReader

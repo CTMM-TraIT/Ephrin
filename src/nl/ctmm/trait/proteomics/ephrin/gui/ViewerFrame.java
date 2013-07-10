@@ -80,6 +80,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private static final long serialVersionUID = 1L;
     private JDesktopPane desktopPane = new ScrollDesktop();
     private ArrayList<String> sortOptions = new ArrayList<String>();
+    private String[] categoryStrings;
     private Main owner = null; 
     private static int RECORD_HEIGHT = 60; 
     private static final int CHECK_PANEL_WIDTH = 120;
@@ -127,13 +128,19 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      * @param title Title of the ViewerFrame
      * @param owner instance of the Main class
      * @param sortOptions Options for sorting project records
+     * @param categories for Combo box
      * @param recordUnits Project record units to be displayed
      */
-    public ViewerFrame(final String title, final Main owner, final ArrayList<String> sortOptions, final ArrayList<ProjectRecordUnit> recordUnits) {
+    public ViewerFrame(final String title, final Main owner, final ArrayList<String> sortOptions, final ArrayList<String> categories, final ArrayList<ProjectRecordUnit> recordUnits) {
         super(title);
         System.out.println("ViewerFrame constructor");
         this.owner = owner; 
         this.sortOptions = sortOptions;
+        //Convert Categories ArrayList to String[] format for input to JComboBox
+        categoryStrings = new String[categories.size()]; 
+        for (int i = 0; i < categories.size(); ++i) { 
+        	categoryStrings[i] = categories.get(i);
+        }
         overwriteRecordUnits(recordUnits);
     }
     
@@ -143,6 +150,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      * @param newRecordUnits
      */
     public void overwriteRecordUnits(List<ProjectRecordUnit> newRecordUnits) {
+    	getContentPane().removeAll();
     	cleanVariables();
         for (int i = 0; i < newRecordUnits.size(); ++i) {
         	orderedRecordUnits.add(newRecordUnits.get(i));
@@ -171,19 +179,34 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         //We need one split pane to create 2 regions in the main frame
         //Add static (immovable) Control frame
         cleanGUIComponents();
-        controlFrame = getControlFrame();
         int totalRecords = orderedRecordUnits.size();
         if (totalRecords != 0) {
         	desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, (totalRecords + 1) * (RECORD_HEIGHT + 5)));
             prepareRecordsInAscendingOrder(true);
-            splitPane1.add(controlFrame, 0);
-            splitPane1.add(new JScrollPane(desktopPane), 1);
-            splitPane1.setOneTouchExpandable(true); //hide-show feature
-            splitPane1.setVisible(true); 
-            splitPane1.setDividerLocation(SPLIT_PANE1_DIVIDER_LOCATION); //control panel will appear 170 pixels large
-            getContentPane().add(splitPane1, "Center");
+            assembleSplitPane1();
             setJMenuBar(createMenuBar());
         }
+    }
+    
+    /**
+     * Creates a splitPane1 seperating controlFrame and desktopPane 
+     * TODO Solve problems regarding divider location, display and 
+     * redrawing splitPane on adding new record or deleting marked record or saving record
+     */
+    private void assembleSplitPane1() {
+    	splitPane1.removeAll();
+    	controlFrame = getControlFrame();
+    	controlFrame.setVisible(true);
+        splitPane1.setVisible(true); 
+        splitPane1.add(controlFrame, 0);
+        JScrollPane recordsPane = new JScrollPane(desktopPane);
+        recordsPane.setVisible(true);
+        int totalRecords = orderedRecordUnits.size();
+        recordsPane.setMinimumSize(new Dimension(DESKTOP_PANE_WIDTH, (totalRecords + 1) * (RECORD_HEIGHT + 5)));
+        splitPane1.add(recordsPane, 1);
+        splitPane1.setDividerLocation(SPLIT_PANE1_DIVIDER_LOCATION);
+        splitPane1.setOneTouchExpandable(true); //hide-show feature
+        getContentPane().add(splitPane1, "Center");
     }
     
     /**
@@ -227,6 +250,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         ((javax.swing.plaf.basic.BasicInternalFrameUI)ifu).setNorthPane(null);
         controlFrame.setBorder(null);
         controlFrame.setPreferredSize(new Dimension(CONTROL_FRAME_WIDTH, CONTROL_FRAME_HEIGHT));
+        controlFrame.setMinimumSize(new Dimension(CONTROL_FRAME_WIDTH, CONTROL_FRAME_HEIGHT));
         controlFrame.setLayout(new FlowLayout());
         controlFrame.setBackground(Color.WHITE);
         
@@ -436,7 +460,8 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         
         //Create the combo box, select item at index 2.
         //Indices start at 0, so 2 specifies the unknown.
-        JComboBox<String> categoryCombo = new JComboBox<String>(Constants.CATEGORY_NAMES);
+
+        JComboBox<String> categoryCombo = new JComboBox<String>(categoryStrings);
         categoryCombo.setFont(font);
         categoryCombo.setName(Integer.toString(recordUnit.getRecordNum() - 1));
         categoryCombo.setSelectedIndex(recordUnit.getCategoryIndex());
@@ -458,7 +483,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         commentArea.setLineWrap(true); 
 
         commentArea.addFocusListener(this);
-        //commentArea.addActionListener(this);
         JPanel commentPanel = new JPanel();
         commentPanel.setFont(font);
         commentPanel.setBackground(Color.WHITE);
@@ -507,21 +531,21 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         recordPanel.setLayout(layout);
         recordPanel.setPreferredSize(new Dimension(RECORD_PANEL_WIDTH, RECORD_HEIGHT/2));
         // add record labels, one in each cell
-        JLabel titleLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(0));
+        JLabel titleLabel = new JLabel(sortOptions.get(0));
         titleLabel.setFont(font);
         titleLabel.setHorizontalAlignment( SwingConstants.CENTER);
         titleLabel.setBackground(Color.WHITE);
         titleLabel.setPreferredSize(new Dimension(RECORD_PANEL_WIDTH/3, RECORD_HEIGHT/2));
         titleLabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
         recordPanel.add(titleLabel);
-        titleLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(1));
+        titleLabel = new JLabel(sortOptions.get(1));
         titleLabel.setFont(font);
         titleLabel.setHorizontalAlignment( SwingConstants.CENTER);
         titleLabel.setBackground(Color.WHITE);
         titleLabel.setPreferredSize(new Dimension(RECORD_PANEL_WIDTH/3, RECORD_HEIGHT/2));
         titleLabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
         recordPanel.add(titleLabel);
-        titleLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(2));
+        titleLabel = new JLabel(sortOptions.get(2));
         titleLabel.setFont(font);
         titleLabel.setHorizontalAlignment( SwingConstants.CENTER);
         titleLabel.setBackground(Color.WHITE);
@@ -529,7 +553,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         recordPanel.add(titleLabel);
 
         //Add the combo box label
-        JLabel categoryLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(3));
+        JLabel categoryLabel = new JLabel(sortOptions.get(3));
         categoryLabel.setFont(font);
         categoryLabel.setBackground(Color.WHITE);
         JPanel categoryPanel = new JPanel();
@@ -540,7 +564,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         categoryPanel.add(categoryLabel);
         
       //Add the comment box label
-        JLabel commentLabel = new JLabel(Constants.SORT_OPTION_NAMES.get(4));
+        JLabel commentLabel = new JLabel(sortOptions.get(4));
         commentLabel.setFont(font);
         commentLabel.setBackground(Color.WHITE);
         JPanel commentPanel = new JPanel();
@@ -560,7 +584,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         frame.setBorder(null);
         return frame;
     }
-
     
     /**
      * Prepare records to be displayed
@@ -575,7 +598,6 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         titleFrame.setVisible(true);
         desktopPane.add(titleFrame);
         yCoordinate += RECORD_HEIGHT/2 + 5;
-        
         System.out.println("No. of orderedRecordUnits = " + orderedRecordUnits.size());
         for (int i = 0; i < orderedRecordUnits.size(); ++i) {
             JInternalFrame recordFrame;
@@ -602,6 +624,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         System.out.println("In updateRecordUnits yCoordinate = " + yCoordinate);
         int numRecordUnits = orderedRecordUnits.size();
         System.out.println("Number of project record units = " + orderedRecordUnits.size());
+        String appendMessage = "";
         if (!duplicateRecordsCheck(newRecordUnit)) {
         	newRecordUnit.setRecordNum(++numRecordUnits);
             orderedRecordUnits.add(newRecordUnit);
@@ -610,20 +633,31 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             recordCategories.add(newRecordUnit.getCategoryIndex());
             recordComments.add(newRecordUnit.getComment());
             //update desktopFrame
+            System.out.println("Getting new record frame..");
             JInternalFrame recordFrame = createRecordFrame(newRecordUnit.getRecordNum(), newRecordUnit);
+            System.out.println("Packing recordFrame..");
             recordFrame.pack();
+            System.out.println("Setting record frame visible..");
             recordFrame.setVisible(true);
+            System.out.println("Determining location of record frame..");
             recordFrame.setLocation(0, yCoordinate);
+            System.out.println("Adding record frame to desktopPane..");
             desktopPane.add(recordFrame);
-            revalidate();
+            System.out.println("Revalidating GUI..");
             System.out.println("yCoordinate = " + yCoordinate);
             yCoordinate +=  RECORD_HEIGHT + 5;
             System.out.println("Number of project record units = " + orderedRecordUnits.size());
+            appendMessage = newRecordUnit.getProjectName() + " record added in the viewer (to be saved).";
         } else {
-         	System.out.println("Warning!! The new project record " + newRecordUnit.getProjectName() + " already exists in EphrinSummaryFile.tsv.");
-        }
-           currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
-           currentStatus += " | | | | | " + newRecordUnit.getProjectName() + " record added in the viewer (to be saved).";
+         	System.out.println("Warning!! The project record " + newRecordUnit.getProjectName() + " already exists in EphrinSummaryFile.tsv.");
+         	appendMessage = "Warning!! The project record " + newRecordUnit.getProjectName() + " already exists in EphrinSummaryFile.tsv.";
+        } 
+           desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, (numRecordUnits + 1) * (RECORD_HEIGHT + 5)));           
+           assembleSplitPane1();
+           pack();
+           setVisible(true);
+           revalidate();
+           updateEphrinStatus(appendMessage);
     }
     
     private boolean duplicateRecordsCheck(ProjectRecordUnit newRecordUnit) {
@@ -647,7 +681,17 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         if (appendMessage != null) {
         	currentStatus += " | | | | " + appendMessage; 
         }
-        System.out.println("currentStatus = " + currentStatus);
+        System.out.println("Setting new currentStatus = " + currentStatus);
+        statusPanel.removeAll();
+        statusLabel = new JLabel (currentStatus);
+        statusLabel.setFont(statusFont);
+        statusLabel.setBackground(Color.CYAN);
+        statusPanel.setBackground(Color.CYAN);
+        statusPanel.add(statusLabel);
+        statusPanel.setVisible(true);
+        pack();
+        setVisible(true);
+        revalidate();
     }  
     
     /**
@@ -697,12 +741,10 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         } else if (evt.getActionCommand().equals("SaveAllRecords")) {
         	ArrayList<ProjectRecordUnit> allRecordUnits = selectUnmarkedRecordUnits(false);
         	owner.notifyOverwriteProjectRecords(allRecordUnits);
-        	owner.notifyRefreshViewerFrame();
         } else if (evt.getActionCommand().equals("DeleteMarkedRecords")) {
         	//Select records to save
         	ArrayList<ProjectRecordUnit> unmarkedRecordUnits = selectUnmarkedRecordUnits(true);
         	owner.notifyOverwriteProjectRecords(unmarkedRecordUnits);
-        	owner.notifyRefreshViewerFrame();
         } else if (evt.getActionCommand().equals("comboBoxChanged")) {
         	if (evt.getSource().getClass().getName().equals("javax.swing.JComboBox")) {
         		JComboBox<String> thisComboBox = (JComboBox<String>) evt.getSource();

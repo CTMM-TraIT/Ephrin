@@ -18,7 +18,7 @@ public interface Constants {
     static final String PROPERTY_BACKUP_FILE_FULLPATH = "EphrinSummaryFile.tsv.bak";
     static final String PROPERTY_EPHRIN_LOGO_FILE = "images\\PDB_2hle_EBI.jpg";
     static final String PROPERTY_PROJECT_LOGO_FILE = "images\\traitctmm.jpg";
-    static final String[] CATEGORY_NAMES = {"Mouse", "Human", "Unknown"};
+    //static final String[] CATEGORY_NAMES = {"Mouse", "Human", "Unknown"};
     static final int[] CATEGORY_INDEX = {0, 1, 2};
     static final String CATEGORY_MOUSE = "Mouse";
     static final String CATEGORY_HUMAN = "Human";
@@ -27,6 +27,6 @@ public interface Constants {
     static final int CATEGORY_HUMAN_INDEX = 1; 
     static final int CATEGORY_UNKNOWN_INDEX = 2;
     static final String NO_COMMENTS_TXT = "No comments yet.";
-	ArrayList<String> SORT_OPTION_NAMES = new ArrayList<String>(
-		    Arrays.asList("ProjectName", "FirstRAWFile", "ProjectFolder", "Category", "Comment"));
+	//ArrayList<String> SORT_OPTION_NAMES = new ArrayList<String>(
+	//	    Arrays.asList("ProjectName", "FirstRAWFile", "ProjectFolder", "Category", "Comment"));
 }

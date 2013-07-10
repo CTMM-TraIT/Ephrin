@@ -37,7 +37,7 @@ public class Main {
      */
     private void createAndShowGUI(Properties appProperties) {
         //Create and set up the window.
-        viewerFrame = new ViewerFrame("Ephrin - Proteomics Project Tracker", instance, Constants.SORT_OPTION_NAMES, retrieveRecordUnits());
+        viewerFrame = new ViewerFrame("Ephrin - Proteomics Project Tracker", instance, retrieveSortOptions(), retrieveCategories(), retrieveRecordUnits());
     }
 
 	/**
@@ -86,6 +86,30 @@ public class Main {
     }
     
     /**
+     * Retrieve sort options from the EphrinSummaryFile.tsv
+     * @return ArrayList of sort options
+     */
+    private ArrayList<String> retrieveSortOptions() {
+    	ArrayList<String> sortOptions = new ArrayList<String>();
+    	summaryFileReader = SummaryFileReader.getInstance();
+    	sortOptions = summaryFileReader.getSortOptionsNames();
+    	return sortOptions;
+    }
+    
+    /**
+     * Retrieve categories from the EphrinSummaryFile.tsv
+     * @return ArrayList of categories
+     */
+    private ArrayList<String> retrieveCategories() {
+    	ArrayList<String> categories = new ArrayList<String>();
+    	summaryFileReader = SummaryFileReader.getInstance();
+    	categories = summaryFileReader.getCategories();
+    	return categories;
+    }
+    
+    
+    
+    /**
      * Overwrite displayed project records in the ViewerFrame. 
      * The reason behind overwriting is changes to the EphrinSummaryFile.tsv file.  
      *
@@ -95,6 +119,7 @@ public class Main {
     	System.out.println("Main::notifyOverwriteProjectRecords " + projectRecordUnits.size() + " records");
     	summaryFileWriter = SummaryFileWriter.getInstance();
     	if (summaryFileWriter.OverwriteProjectRecords(projectRecordUnits)) {
+    		viewerFrame.overwriteRecordUnits(retrieveRecordUnits());
     		viewerFrame.updateEphrinStatus(projectRecordUnits.size() + " records successfully saved to " + Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
     	} else {
     		viewerFrame.updateEphrinStatus("Alert!! Something went wrong while saving project records!!");
@@ -113,12 +138,4 @@ public class Main {
 	    viewerFrame.addRecordUnit(prUnit);
 	}
 
-	/**
-	 * Trigger from ViewerFrame to refresh displayed project records. 
-	 * The reason behind refreshing is changes to the EphrinSummaryFile.tsv file.  
-	 */
-	public void notifyRefreshViewerFrame() {
-		System.out.println("Main::notifyRefreshViewerFrame");
-		viewerFrame.overwriteRecordUnits(retrieveRecordUnits());
-	}
 }

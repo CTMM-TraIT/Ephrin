@@ -1,7 +1,10 @@
 package nl.ctmm.trait.proteomics.ephrin.output;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,10 +51,22 @@ public class SummaryFileWriter {
         	Path destination = Paths.get(Constants.PROPERTY_BACKUP_FILE_FULLPATH);
         	//take backup
         	Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-        	//overwrite project records
+        	//Read first line of summary file
+		    InputStreamReader streamReader = new InputStreamReader(new FileInputStream(summaryFile));
+		    BufferedReader br = new BufferedReader(streamReader);
+		    String firstLine = "";
+		    while (br.ready() && firstLine.equals("")) {
+		    	firstLine = br.readLine().trim(); //Skip first line
+		    	System.out.println("FirstLine = " + firstLine);
+		    }
+		    br.close();
+		    streamReader.close(); 
+		    //Write records to the summary file
             FileWriter fWriter = new FileWriter(summaryFile, false);
             BufferedWriter bWriter = new BufferedWriter(fWriter);
-            bWriter.write("ProjectName\tFirstRawFileRecord\tFOlderPath\n");
+        	//Write first line to the summary file
+            bWriter.write(firstLine + "\n");
+        	//overwrite project records
             for (int i = 0; i < projectRecordUnits.size(); ++i) {
             	ProjectRecordUnit thisUnit = projectRecordUnits.get(i);
             	bWriter.write(thisUnit.getProjectName() + "\t" + 
