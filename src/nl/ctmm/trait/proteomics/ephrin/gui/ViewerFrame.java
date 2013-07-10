@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -66,7 +67,6 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
 //TODO Algorithm for ordering record units
 //TODO Code refactoring
 //TODO Red status update
-//TODO Check for duplicate records
 //TODO SplitPane1 position 
 
 public class ViewerFrame extends JFrame implements ActionListener, ItemListener, FocusListener {
@@ -105,7 +105,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private List<String> recordCategories = new ArrayList<String>();
     //Comment List to keep track of edited comments
     private List<String> recordComments = new ArrayList<String>();
-    private String currentSortCriteria; 
+    private String currentSortCriteria, newSortCriteria; 
     //private ArrayList<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>(); //preserve original record units 
     private ArrayList<ProjectRecordUnit> orderedRecordUnits = new ArrayList<ProjectRecordUnit>(); //use this list for display and other operations
     private JSplitPane splitPane1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT); 
@@ -718,6 +718,53 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     	}
     	return unmarkedRecordUnits; 
     }
+
+    /**
+     * Sort displayed record units according to user assigned sort criteria
+     */
+    private void sortRecordFrameList() {
+        System.out.println("sortRecordFrameList From " + currentSortCriteria + " To " + newSortCriteria);
+        StringTokenizer stkz = new StringTokenizer(newSortCriteria, "@");
+        stkz.nextToken();
+        String sortKey = stkz.nextToken(); //e.g. generic:date
+        String sortOrder = stkz.nextToken(); //e.g. Asc or Des
+        System.out.println("Sort requested according to " + sortKey + " order " + sortOrder);
+        //Remove currently ordered record units and recreate them according to sort criteria
+        ArrayList<ProjectRecordUnit> newOrderedRecordUnits = new ArrayList<ProjectRecordUnit>();
+        newOrderedRecordUnits.add(orderedRecordUnits.get(0)); //add initial element
+        //Sort in ascending order
+        for (int i = 1; i < orderedRecordUnits.size(); ++i) {
+            int insertAtIndex = newOrderedRecordUnits.size(); //new element will be inserted at position j or at the end of list
+            for (int j = 0; j < newOrderedRecordUnits.size(); ++j) {
+            	int result = orderedRecordUnits.get(i).compareTo(newOrderedRecordUnits.get(j), sortKey); //comparing new and old lists
+                if (result == -1) { //reportUnit(i) is < orderedUnit(j)
+                    insertAtIndex = j;
+                    break;
+                }
+            }
+            newOrderedRecordUnits.add(insertAtIndex, orderedRecordUnits.get(i)); //Add to specified index
+        }    
+        //Copy to orderedRecordUnits
+        orderedRecordUnits.clear();
+        for (int i = 0; i < newOrderedRecordUnits.size(); ++i) {
+        	orderedRecordUnits.add(newOrderedRecordUnits.get(i));
+        }
+        if (desktopPane != null) {
+            desktopPane.removeAll(); //A new chart frame will be given to every report
+        }
+        if (sortOrder.equals("Asc")) {
+            prepareRecordsInAscendingOrder(true);
+        } else if (sortOrder.equals("Des")) {
+        	prepareRecordsInAscendingOrder(false);
+        }
+        desktopPane.setVisible(true); 
+        pack();
+        setVisible(true);
+        revalidate();
+        currentSortCriteria = newSortCriteria; 
+        newSortCriteria = "";
+    }
+
     
     /**
      * Process user input events.
@@ -747,10 +794,19 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
                 String selection = (String)thisComboBox.getSelectedItem();
                 recordCategories.remove(recordCategoryIndex);
                 recordCategories.add(recordCategoryIndex, selection);
+                //Save record category to corresponding record unit in orderedRecordUnits
+                ProjectRecordUnit thisRecordUnit = orderedRecordUnits.get(recordCategoryIndex) ;
+                thisRecordUnit.setCategory(selection);
+                orderedRecordUnits.remove(recordCategoryIndex);
+                orderedRecordUnits.add(thisRecordUnit);
                 System.out.println("Combo box name = " + thisComboBox.getName() + " Index = " + 
                 		recordCategoryIndex + " New value = " + selection);
         	}
-        }
+        } else if (evt.getActionCommand().startsWith("Sort")) {
+        	//Sort chart frame list according to chosen Sort criteria
+            newSortCriteria = evt.getActionCommand();
+            sortRecordFrameList();
+        } 
     }
     
     /**
@@ -760,9 +816,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         if (recordCheckBoxFlags != null) {
         	recordCheckBoxFlags.clear();
         }
-        /*if (recordUnits != null) {
-        	recordUnits.clear();
-        }*/
+
         if (orderedRecordUnits != null) {
         	orderedRecordUnits.clear();
         }
@@ -782,6 +836,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         	splitPane1.removeAll();
         }
     }
+    
     
 	/**
 	 * Display user interface for choosing txt Folder
@@ -831,7 +886,12 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             int recordCommentsIndex = Integer.parseInt(thisTextArea.getName());
             String comment = thisTextArea.getText();
             recordComments.remove(recordCommentsIndex);
-            recordComments.add(recordCommentsIndex, comment);
+            recordComments.add(recordCommentsIndex, comment.trim());
+            //Save record comment to corresponding record unit in orderedRecordUnits
+            ProjectRecordUnit thisRecordUnit = orderedRecordUnits.get(recordCommentsIndex) ;
+            thisRecordUnit.setComment(comment.trim());
+            orderedRecordUnits.remove(recordCommentsIndex);
+            orderedRecordUnits.add(thisRecordUnit);
             System.out.println("Comment area name = " + thisTextArea.getName() + " Index = " + 
             		recordCommentsIndex + " New comment = " + comment);
     	}
