@@ -735,19 +735,53 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         System.out.println("Sort requested according to " + sortKey + " order " + sortOrder);
         //Remove currently ordered record units and recreate them according to sort criteria
         ArrayList<ProjectRecordUnit> newOrderedRecordUnits = new ArrayList<ProjectRecordUnit>();
-        newOrderedRecordUnits.add(orderedRecordUnits.get(0)); //add initial element
-        //Sort in ascending order
-        for (int i = 1; i < orderedRecordUnits.size(); ++i) {
-            int insertAtIndex = newOrderedRecordUnits.size(); //new element will be inserted at position j or at the end of list
-            for (int j = 0; j < newOrderedRecordUnits.size(); ++j) {
-            	int result = orderedRecordUnits.get(i).compareTo(newOrderedRecordUnits.get(j), sortKey); //comparing new and old lists
-                if (result == -1) { //reportUnit(i) is < orderedUnit(j)
-                    insertAtIndex = j;
-                    break;
+        
+        if (sortKey.equals("Mark")) { 
+            //Check recordCheckBoxFlags status and group those reports together at the beginning of orderedReportUnits 
+            //Add all selected reports first. i refers to original report number
+            for (int i = 0; i < recordCheckBoxFlags.size(); ++i) {
+                if (recordCheckBoxFlags.get(i)) {
+                	System.out.println("Selected record index = " + i);
+                    //Find orderedRecordUnit with record index i
+                	//TODO How to make it more efficient? 
+                	for (int j = 0; j < orderedRecordUnits.size(); ++j) { 
+                		if ((orderedRecordUnits.get(j).getRecordNum() - 1) == i) {
+                			newOrderedRecordUnits.add(orderedRecordUnits.get(j));
+                			break; 
+                		}
+                	}
                 }
             }
-            newOrderedRecordUnits.add(insertAtIndex, orderedRecordUnits.get(i)); //Add to specified index
-        }    
+            //Later add all deselected reports. i refers to original report number 
+            for (int i = 0; i < recordCheckBoxFlags.size(); ++i) {
+                if (!recordCheckBoxFlags.get(i)) {
+                	System.out.println("Selected record index = " + i);
+                    //Find orderedRecordUnit with record index i
+                	//TODO How to make it more efficient? 
+                	for (int j = 0; j < orderedRecordUnits.size(); ++j) { 
+                		if ((orderedRecordUnits.get(j).getRecordNum() - 1) == i) {
+                			newOrderedRecordUnits.add(orderedRecordUnits.get(j));
+                			break; 
+                		}
+                	}
+                }
+            }
+        } else { //sort according to other column names
+        	newOrderedRecordUnits.add(orderedRecordUnits.get(0)); //add initial element
+            //Sort in ascending order
+            for (int i = 1; i < orderedRecordUnits.size(); ++i) {
+                int insertAtIndex = newOrderedRecordUnits.size(); //new element will be inserted at position j or at the end of list
+                for (int j = 0; j < newOrderedRecordUnits.size(); ++j) {
+                	int result = orderedRecordUnits.get(i).compareTo(newOrderedRecordUnits.get(j), sortKey); //comparing new and old lists
+                    if (result == -1) { //reportUnit(i) is < orderedUnit(j)
+                        insertAtIndex = j;
+                        break;
+                    }
+                }
+                newOrderedRecordUnits.add(insertAtIndex, orderedRecordUnits.get(i)); //Add to specified index
+            }    
+        }
+        
         //Copy to orderedRecordUnits
         orderedRecordUnits.clear();
         for (int i = 0; i < newOrderedRecordUnits.size(); ++i) {
