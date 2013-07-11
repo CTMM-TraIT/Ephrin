@@ -34,40 +34,47 @@ public class TxtDirectoryReader {
     public ProjectRecordUnit RetrieveProjectRecord (String txtDirectoryName) {
         final File txtDirectory = new File(txtDirectoryName);
         ProjectRecordUnit prUnit = null; 
-        if (txtDirectory.exists()) {
-            File txtParent = txtDirectory.getParentFile(); 
-            File txtGrandpa = txtParent.getParentFile();
-            String projectName = txtGrandpa.getParentFile().getName();
-            String projectFolder = txtGrandpa.getParentFile().getAbsolutePath();
-            String templateFilePath = "";
-            String secondLine = "";
-            final File[] files = txtDirectory.listFiles();
-            if (files != null) {
-                for (final File file : files) {
-                   if (file.getName().equals(Constants.PROPERTY_TEMPLATE_FILE_NAME)) {
-                       System.out.println("Template file found: " + file.getName() + 
-                               " Absolute path: " + file.getAbsolutePath());
-                       templateFilePath = file.getAbsolutePath();
-                       TemplateFileReader templateFileReader = new TemplateFileReader(templateFilePath);
-                       secondLine = templateFileReader.readSecondLine();
-                       break;
-                   }
+        try {
+        	if (txtDirectory.exists()) {
+                File txtParent = txtDirectory.getParentFile(); 
+                File txtGrandpa = txtParent.getParentFile();
+                String projectName = txtGrandpa.getParentFile().getName();
+                String projectFolder = txtGrandpa.getParentFile().getAbsolutePath();
+                String templateFilePath = "";
+                String secondLine = "";
+                final File[] files = txtDirectory.listFiles();
+                if (files != null) {
+                    for (final File file : files) {
+                       if (file.getName().equals(Constants.PROPERTY_TEMPLATE_FILE_NAME)) {
+                           System.out.println("Template file found: " + file.getName() + 
+                                   " Absolute path: " + file.getAbsolutePath());
+                           templateFilePath = file.getAbsolutePath();
+                           TemplateFileReader templateFileReader = new TemplateFileReader(templateFilePath);
+                           secondLine = templateFileReader.readSecondLine();
+                           break;
+                       }
+                    }
                 }
+                if (secondLine.equals("")) {
+                	System.out.println("Invalid - No Template file found.");
+                	return null;
+                }
+                System.out.println("Record: " + projectName + " " + secondLine + " " 
+                        + projectFolder);
+                
+                ArrayList<String> parameterValues = new ArrayList<String>();
+                parameterValues.add(projectName);
+                parameterValues.add(secondLine);
+                parameterValues.add(projectFolder);
+                parameterValues.add(Constants.CATEGORY_UNKNOWN);
+                parameterValues.add(Constants.NO_COMMENTS_TXT);
+                prUnit = new ProjectRecordUnit(-1, parameterValues, sfrInstance.getSortOptionsNames(), sfrInstance.getCategories());
             }
-            if (secondLine.equals("")) {
-            	secondLine = "Invalid - No Template file found.";
-            }
-            System.out.println("Record: " + projectName + " " + secondLine + " " 
-                    + projectFolder);
-            
-            ArrayList<String> parameterValues = new ArrayList<String>();
-            parameterValues.add(projectName);
-            parameterValues.add(secondLine);
-            parameterValues.add(projectFolder);
-            parameterValues.add(Constants.CATEGORY_UNKNOWN);
-            parameterValues.add(Constants.NO_COMMENTS_TXT);
-            prUnit = new ProjectRecordUnit(-1, parameterValues, sfrInstance.getSortOptionsNames(), sfrInstance.getCategories());
+            return prUnit;
+        } catch (Exception e) {
+        	System.out.println(e);
+        	return null;
         }
-        return prUnit;
+        
     }
 }

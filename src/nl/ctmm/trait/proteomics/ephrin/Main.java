@@ -64,16 +64,8 @@ public class Main {
     public static void main(String[] args) {
     	Main instance = Main.getInstance();
     	instance.createAndShowGUI(instance.loadProperties());
-    	/*
-    	//Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-            	instance.createAndShowGUI();
-            }
-        });
-        */
     }
+
     /**
      * Retrieve project record units from the EphrinSummaryFile.tsv
      * @return ArrayList of project record units
@@ -132,8 +124,14 @@ public class Main {
 		System.out.println("Main::notifyNewTxtDirectorySelected " + txtDirectoryName);
 	    TxtDirectoryReader txtDirectoryReader = TxtDirectoryReader.getInstance(); 
 	    ProjectRecordUnit prUnit = txtDirectoryReader.RetrieveProjectRecord(txtDirectoryName);
-	    System.out.println("New record found in " + txtDirectoryName);
-	    viewerFrame.addRecordUnit(prUnit);
+	    if (prUnit != null) {
+		    System.out.println("New record found in " + txtDirectoryName);
+		    viewerFrame.addRecordUnit(prUnit); 
+	    } else {
+	    	System.out.println("Invalid txt directory: " + txtDirectoryName + ".");
+	    	viewerFrame.updateEphrinStatus("Invalid txt directory: " + txtDirectoryName + ".", true); 
+	    }
+
 	}
 
 }

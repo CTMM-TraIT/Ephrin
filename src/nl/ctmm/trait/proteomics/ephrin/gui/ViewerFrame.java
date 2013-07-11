@@ -682,6 +682,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         statusLabel.setFont(statusFont);
         Color background = Color.CYAN; 
         if (alert) {
+        	statusLabel.setForeground(Color.YELLOW);
         	background = Color.RED;
         }
         statusLabel.setBackground(background);
