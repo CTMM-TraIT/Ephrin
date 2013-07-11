@@ -159,7 +159,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, VIEWER_FRAME_HEIGHT));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         assembleComponents();
-        setResizable(false);
+        //setResizable(false);
         pack();
         setVisible(true);
         revalidate();
@@ -191,16 +191,16 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     private void assembleSplitPane1() {
     	splitPane1.removeAll();
     	controlFrame = getControlFrame();
-    	controlFrame.setVisible(true);
-        splitPane1.setVisible(true); 
-        splitPane1.add(controlFrame, 0);
-        JScrollPane recordsPane = new JScrollPane(desktopPane);
+    	JScrollPane controlPane = new JScrollPane(controlFrame);
+    	controlPane.setVisible(true);
+    	JScrollPane recordsPane = new JScrollPane(desktopPane);
         recordsPane.setVisible(true);
         int totalRecords = orderedRecordUnits.size();
-        recordsPane.setMinimumSize(new Dimension(DESKTOP_PANE_WIDTH, (totalRecords + 1) * (RECORD_HEIGHT + 5)));
-        splitPane1.add(recordsPane, 1);
-        splitPane1.setDividerLocation(SPLIT_PANE1_DIVIDER_LOCATION);
+        splitPane1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, controlPane, recordsPane);
         splitPane1.setOneTouchExpandable(true); //hide-show feature
+        splitPane1.setDividerLocation(SPLIT_PANE1_DIVIDER_LOCATION);
+        recordsPane.setMinimumSize(new Dimension(DESKTOP_PANE_WIDTH, (totalRecords + 1) * (RECORD_HEIGHT + 5)));
+        controlPane.setMinimumSize(new Dimension(CONTROL_FRAME_HEIGHT, CONTROL_FRAME_WIDTH));
         getContentPane().add(splitPane1, "Center");
     }
     
@@ -643,16 +643,16 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
             yCoordinate +=  RECORD_HEIGHT + 5;
             System.out.println("Number of project record units = " + orderedRecordUnits.size());
             appendMessage = newRecordUnit.getParameterValueFromKey(sortOptions.get(0)) + " record added in the viewer (to be saved).";
+            updateEphrinStatus(appendMessage, false);
         } else {
          	System.out.println("Warning!! The project record " + newRecordUnit.getParameterValueFromKey(sortOptions.get(0)) + " already exists in EphrinSummaryFile.tsv.");
          	appendMessage = "Warning!! The project record " + newRecordUnit.getParameterValueFromKey(sortOptions.get(0)) + " already exists in EphrinSummaryFile.tsv.";
+         	updateEphrinStatus(appendMessage, true);
         } 
            desktopPane.setPreferredSize(new Dimension(DESKTOP_PANE_WIDTH, (numRecordUnits + 1) * (RECORD_HEIGHT + 5)));           
-           assembleSplitPane1();
            pack();
            setVisible(true);
            revalidate();
-           updateEphrinStatus(appendMessage);
     }
     
     private boolean duplicateRecordsCheck(ProjectRecordUnit newRecordUnit) {
@@ -670,7 +670,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
      * Append to existing status of Ephrin
      * @param appendMessage
      */
-    public void updateEphrinStatus(String appendMessage) {
+    public void updateEphrinStatus(String appendMessage, boolean alert) {
     	System.out.println("ViewerFrame::updateEphrinStatus " + appendMessage);
     	currentStatus = "Number of project record units = " + orderedRecordUnits.size(); 
         if (appendMessage != null) {
@@ -680,8 +680,12 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
         statusPanel.removeAll();
         statusLabel = new JLabel (currentStatus);
         statusLabel.setFont(statusFont);
-        statusLabel.setBackground(Color.CYAN);
-        statusPanel.setBackground(Color.CYAN);
+        Color background = Color.CYAN; 
+        if (alert) {
+        	background = Color.RED;
+        }
+        statusLabel.setBackground(background);
+        statusPanel.setBackground(background);
         statusPanel.add(statusLabel);
         statusPanel.setVisible(true);
         pack();

@@ -107,8 +107,6 @@ public class Main {
     	return categories;
     }
     
-    
-    
     /**
      * Overwrite displayed project records in the ViewerFrame. 
      * The reason behind overwriting is changes to the EphrinSummaryFile.tsv file.  
@@ -120,9 +118,9 @@ public class Main {
     	summaryFileWriter = SummaryFileWriter.getInstance();
     	if (summaryFileWriter.OverwriteProjectRecords(projectRecordUnits)) {
     		viewerFrame.overwriteRecordUnits(retrieveRecordUnits());
-    		viewerFrame.updateEphrinStatus(projectRecordUnits.size() + " records successfully saved to " + Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
+    		viewerFrame.updateEphrinStatus(projectRecordUnits.size() + " records successfully saved to " + Constants.PROPERTY_SUMMARY_FILE_FULLPATH, false);
     	} else {
-    		viewerFrame.updateEphrinStatus("Alert!! Something went wrong while saving project records!!");
+    		viewerFrame.updateEphrinStatus("Alert!! Something went wrong while saving project records!!", true);
     	}
     }
     
