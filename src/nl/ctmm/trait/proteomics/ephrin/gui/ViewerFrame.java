@@ -64,10 +64,9 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
  * @author <a href="mailto:freek.de.bruijn@nbic.nl">Freek de Bruijn</a>
  */
 
-//TODO Algorithm for ordering record units
-//TODO Code refactoring
-//TODO Red status update
-//TODO SplitPane1 position 
+//TODO Unit tests 
+//TODO About page
+//TODO Brief manual
 
 public class ViewerFrame extends JFrame implements ActionListener, ItemListener, FocusListener {
     private static final long serialVersionUID = 1L;
