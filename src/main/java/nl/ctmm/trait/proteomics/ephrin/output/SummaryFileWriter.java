@@ -12,6 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
 import nl.ctmm.trait.proteomics.ephrin.input.SummaryFileReader;
@@ -68,7 +69,7 @@ public class SummaryFileWriter {
             BufferedWriter bWriter = new BufferedWriter(fWriter);
         	//Write first line to the summary file
             bWriter.write(firstLine + "\n");
-            ArrayList<String> paramNames = sfrInstance.getSortOptionsNames();
+            List<String> paramNames = sfrInstance.getSortOptionsNames();
         	//overwrite project records
             for (int i = 0; i < projectRecordUnits.size(); ++i) {
             	ProjectRecordUnit thisUnit = projectRecordUnits.get(i);

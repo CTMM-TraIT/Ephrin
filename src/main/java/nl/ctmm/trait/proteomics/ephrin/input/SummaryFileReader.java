@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
@@ -16,10 +17,11 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
  */
 public class SummaryFileReader {
 	private static SummaryFileReader instance = new SummaryFileReader();
-    final File summaryFile = new File(Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
-	ArrayList<ProjectRecordUnit> projectRecordUnits = new ArrayList<ProjectRecordUnit>();
-	ArrayList<String> sortOptionsNames = new ArrayList<String>();
-	ArrayList<String> categories = new ArrayList<String>();
+    private final File summaryFile = new File(Constants.PROPERTY_SUMMARY_FILE_FULLPATH);
+    private List<ProjectRecordUnit> projectRecordUnits = new ArrayList<ProjectRecordUnit>();
+    private List<String> sortOptionsNames = new ArrayList<String>();
+    private List<String> categories = new ArrayList<String>();
+
 	/*
 	 * Parsing header values and configuring viewer based on header information
 	 * ProjectName	FirstRawFileRecord	FolderPath	Category{Human;Mouse;Unknown}	Comment{}
@@ -91,7 +93,7 @@ public class SummaryFileReader {
      * Get column names and sort options
      * @return sortOptionsNames
      */
-    public ArrayList<String> getSortOptionsNames() {
+    public List<String> getSortOptionsNames() {
     	return sortOptionsNames;
     }
     
@@ -99,7 +101,7 @@ public class SummaryFileReader {
      * Get categories list e.g. Human, Mouse, Unknown
      * @return categories
      */
-    public ArrayList<String> getCategories() {
+    public List<String> getCategories() {
     	return categories;
     }
     
@@ -119,7 +121,7 @@ public class SummaryFileReader {
      * Retrieve project records from the EphrinSummaryFile.tsv
      * @return ArrayList containing project record units
      */
-    public ArrayList<ProjectRecordUnit> retrieveProjectRecords() {
+    public List<ProjectRecordUnit> retrieveProjectRecords() {
     	if (projectRecordUnits != null) {
     		projectRecordUnits.clear();
     	}

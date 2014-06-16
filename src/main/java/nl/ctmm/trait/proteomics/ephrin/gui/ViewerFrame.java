@@ -52,10 +52,8 @@ import javax.swing.border.EtchedBorder;
 
 import nl.ctmm.trait.proteomics.ephrin.Main;
 import nl.ctmm.trait.proteomics.ephrin.input.ProjectRecordUnit;
-import nl.ctmm.trait.proteomics.ephrin.input.SummaryFileReader;
 import nl.ctmm.trait.proteomics.ephrin.utils.Constants;
 import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
-
 
 /**
  * ViewerFrame with the GUI for the Ephrin project
@@ -71,7 +69,7 @@ import nl.ctmm.trait.proteomics.ephrin.utils.Utilities;
 public class ViewerFrame extends JFrame implements ActionListener, ItemListener, FocusListener {
     private static final long serialVersionUID = 1L;
     private JDesktopPane desktopPane = new ScrollDesktop();
-    private ArrayList<String> sortOptions = new ArrayList<String>();
+    private List<String> sortOptions = new ArrayList<String>();
     private String[] categoryStrings;
     private Main owner = null; 
     private static int RECORD_HEIGHT = 60; 
@@ -116,14 +114,14 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     
     /**
      * Constructor of the ViewerFrame
-     * @param appProperties Application properties
      * @param title Title of the ViewerFrame
      * @param owner instance of the Main class
      * @param sortOptions Options for sorting project records
      * @param categories for Combo box
      * @param recordUnits Project record units to be displayed
      */
-    public ViewerFrame(final String title, final Main owner, final ArrayList<String> sortOptions, final ArrayList<String> categories, final ArrayList<ProjectRecordUnit> recordUnits) {
+    public ViewerFrame(final String title, final Main owner, final List<String> sortOptions,
+                       final List<String> categories, final List<ProjectRecordUnit> recordUnits) {
         super(title);
         System.out.println("ViewerFrame constructor");
         this.owner = owner; 
@@ -612,7 +610,7 @@ public class ViewerFrame extends JFrame implements ActionListener, ItemListener,
     /**
      * Add new project record units to existing list
      * Display new project record units
-     * @param newRecordUnits
+     * @param newRecordUnit
      */
     public void addRecordUnit(ProjectRecordUnit newRecordUnit) {
         System.out.println("In updateRecordUnits yCoordinate = " + yCoordinate);

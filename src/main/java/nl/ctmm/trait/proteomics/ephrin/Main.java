@@ -3,6 +3,7 @@ package nl.ctmm.trait.proteomics.ephrin;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import nl.ctmm.trait.proteomics.ephrin.gui.ViewerFrame;
@@ -37,7 +38,8 @@ public class Main {
      */
     private void createAndShowGUI(Properties appProperties) {
         //Create and set up the window.
-        viewerFrame = new ViewerFrame("Ephrin - Proteomics Project Tracker", instance, retrieveSortOptions(), retrieveCategories(), retrieveRecordUnits());
+        viewerFrame = new ViewerFrame("Ephrin - Proteomics Project Tracker", instance, retrieveSortOptions(),
+                                      retrieveCategories(), retrieveRecordUnits());
     }
 
 	/**
@@ -70,33 +72,27 @@ public class Main {
      * Retrieve project record units from the EphrinSummaryFile.tsv
      * @return ArrayList of project record units
      */
-    private ArrayList<ProjectRecordUnit> retrieveRecordUnits() {
-    	ArrayList<ProjectRecordUnit> recordUnits = new ArrayList<ProjectRecordUnit>();
+    private List<ProjectRecordUnit> retrieveRecordUnits() {
     	summaryFileReader = SummaryFileReader.getInstance();
-    	recordUnits = summaryFileReader.retrieveProjectRecords();
-    	return recordUnits;
+    	return summaryFileReader.retrieveProjectRecords();
     }
     
     /**
      * Retrieve sort options from the EphrinSummaryFile.tsv
      * @return ArrayList of sort options
      */
-    private ArrayList<String> retrieveSortOptions() {
-    	ArrayList<String> sortOptions = new ArrayList<String>();
+    private List<String> retrieveSortOptions() {
     	summaryFileReader = SummaryFileReader.getInstance();
-    	sortOptions = summaryFileReader.getSortOptionsNames();
-    	return sortOptions;
+    	return summaryFileReader.getSortOptionsNames();
     }
     
     /**
      * Retrieve categories from the EphrinSummaryFile.tsv
      * @return ArrayList of categories
      */
-    private ArrayList<String> retrieveCategories() {
-    	ArrayList<String> categories = new ArrayList<String>();
+    private List<String> retrieveCategories() {
     	summaryFileReader = SummaryFileReader.getInstance();
-    	categories = summaryFileReader.getCategories();
-    	return categories;
+    	return summaryFileReader.getCategories();
     }
     
     /**
@@ -110,7 +106,8 @@ public class Main {
     	summaryFileWriter = SummaryFileWriter.getInstance();
     	if (summaryFileWriter.OverwriteProjectRecords(projectRecordUnits)) {
     		viewerFrame.overwriteRecordUnits(retrieveRecordUnits());
-    		viewerFrame.updateEphrinStatus(projectRecordUnits.size() + " records successfully saved to " + Constants.PROPERTY_SUMMARY_FILE_FULLPATH, false);
+    		viewerFrame.updateEphrinStatus(projectRecordUnits.size() + " records successfully saved to "
+                                           + Constants.PROPERTY_SUMMARY_FILE_FULLPATH, false);
     	} else {
     		viewerFrame.updateEphrinStatus("Alert!! Something went wrong while saving project records!!", true);
     	}
@@ -131,7 +128,5 @@ public class Main {
 	    	System.out.println("Invalid txt directory: " + txtDirectoryName + ".");
 	    	viewerFrame.updateEphrinStatus("Invalid txt directory: " + txtDirectoryName + ".", true); 
 	    }
-
 	}
-
 }

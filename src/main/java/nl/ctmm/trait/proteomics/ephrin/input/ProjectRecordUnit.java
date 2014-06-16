@@ -1,21 +1,18 @@
 package nl.ctmm.trait.proteomics.ephrin.input;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class ProjectRecordUnit {
+	private int recordNum = -1;
+    private List<String> parameterValues;
+    private List<String> parameterNames;
+    private List<String> categories;
 
-	int recordNum = -1; 
-	ArrayList<String> parameterValues; 
-	ArrayList<String> parameterNames; 
-	ArrayList<String> categories;
 	/**
 	 * Constructor of ProjectRecordUnit
 	 * @param recordNum Number of project record
-	 * @param projectName Name of the project
-	 * @param firstRawFile First raw file to be displayed
-	 * @param folderPath Path of the project folder 
 	 */
-	public ProjectRecordUnit(int recordNum, ArrayList<String> parameterValues, ArrayList<String> parameterNames, ArrayList<String> categories) {
+	public ProjectRecordUnit(int recordNum, List<String> parameterValues, List<String> parameterNames, List<String> categories) {
 		this.recordNum = recordNum; 
 		this.parameterValues = parameterValues; 
 		this.parameterNames = parameterNames; 
@@ -24,7 +21,7 @@ public class ProjectRecordUnit {
 	
 	/**
 	 * Set number of project record unit
-	 * @param recordNum
+	 * @param recordNum the record number.
 	 */
 	public void setRecordNum(int recordNum) {
 		this.recordNum = recordNum; 
@@ -32,7 +29,7 @@ public class ProjectRecordUnit {
 	
 	/**
 	 * Retrieve number of project record unit
-	 * @return recordNum
+	 * @return recordNum the record number.
 	 */
 	public int getRecordNum() {
 		return recordNum;
